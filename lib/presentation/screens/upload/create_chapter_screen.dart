@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,20 +17,31 @@ class CreateChapterScreen extends StatefulWidget {
   });
 
   @override
-  State<CreateChapterScreen> createState() =>
-      _CreateChapterScreenState();
+  State<CreateChapterScreen> createState() => _CreateChapterScreenState();
 }
 
-class _CreateChapterScreenState
-    extends State<CreateChapterScreen> {
+class _CreateChapterScreenState extends State<CreateChapterScreen> {
+  final tituloController = TextEditingController();
 
-  final tituloController =
-      TextEditingController();
+  final numeroController = TextEditingController();
 
-  final numeroController =
-      TextEditingController();
+  List<File> paginas = [];
 
-  final List<String> paginas = [];
+  Future<void> selecionarPaginas() async {
+    final picker = ImagePicker();
+
+    final imagens = await picker.pickMultiImage();
+
+    if (imagens.isNotEmpty) {
+      setState(() {
+        paginas.addAll(
+          imagens.map(
+            (img) => File(img.path),
+          ),
+        );
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -44,68 +58,41 @@ class _CreateChapterScreenState
           'Novo Capítulo',
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16),
-
         child: Column(
           children: [
-
             TextField(
               controller: tituloController,
-
               decoration: const InputDecoration(
                 labelText: 'Título',
               ),
             ),
-
             const SizedBox(height: 16),
-
             TextField(
               controller: numeroController,
-
-              keyboardType:
-                  TextInputType.number,
-
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText:
-                    'Número do capítulo',
+                labelText: 'Número do capítulo',
               ),
             ),
-
             const SizedBox(height: 24),
-
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
-
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
                 const Text(
                   'Páginas',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 IconButton(
-                  onPressed: () {
-                    setState(() {
-                      paginas.add(
-                        'Página ${paginas.length + 1}',
-                      );
-                    });
-                  },
-
-                  icon: const Icon(
-                    Icons.add,
-                  ),
+                  onPressed: selecionarPaginas,
+                  icon: const Icon(Icons.add),
                 ),
               ],
             ),
-
             Expanded(
               child: paginas.isEmpty
                   ? const Center(
@@ -114,51 +101,28 @@ class _CreateChapterScreenState
                       ),
                     )
                   : ListView.builder(
-                      itemCount:
-                          paginas.length,
-
-                      itemBuilder:
-                          (context, index) {
+                      itemCount: paginas.length,
+                      itemBuilder: (context, index) {
                         return Card(
                           child: ListTile(
-                            leading: const Icon(
-                              Icons.image,
-                            ),
-
-                            title: Text(
+                            leading: Image.file(
                               paginas[index],
+                              width: 50,
+                              fit: BoxFit.cover,
                             ),
-
-                            trailing:
-                                IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                              ),
-
-                              onPressed: () {
-                                setState(() {
-                                  paginas.removeAt(
-                                    index,
-                                  );
-                                });
-                              },
+                            title: Text(
+                              'Página ${index + 1}',
                             ),
                           ),
                         );
                       },
                     ),
             ),
-
             SizedBox(
               width: double.infinity,
-
               child: FilledButton(
                 onPressed: () {
-
-                  if (tituloController
-                      .text
-                      .trim()
-                      .isEmpty) {
+                  if (tituloController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(
                       context,
                     ).showSnackBar(
@@ -171,10 +135,7 @@ class _CreateChapterScreenState
                     return;
                   }
 
-                  if (numeroController
-                      .text
-                      .trim()
-                      .isEmpty) {
+                  if (numeroController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(
                       context,
                     ).showSnackBar(
@@ -200,28 +161,17 @@ class _CreateChapterScreenState
                     return;
                   }
 
-                  final novoCapitulo =
-                      CapituloModel(
+                  final novoCapitulo = CapituloModel(
                     numero: int.parse(
                       numeroController.text,
                     ),
-
-                    titulo:
-                        tituloController.text,
-
-                    paginas: List.generate(
-                      paginas.length,
-                      (index) =>
-                          'assets/pages/default.png',
-                    ),
+                    titulo: tituloController.text,
+                    paginas: paginas.map((e) => e.path).toList(),
                   );
 
-                  context
-                      .read<ObraProvider>()
-                      .adicionarCapitulo(
-                        widget.obra,
-                        novoCapitulo,
-                      );
+                  widget.obra.capitulos.add(
+                    novoCapitulo,
+                  );
 
                   ScaffoldMessenger.of(
                     context,
@@ -237,7 +187,6 @@ class _CreateChapterScreenState
                     context,
                   );
                 },
-
                 child: const Text(
                   'Publicar',
                 ),

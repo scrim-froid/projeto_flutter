@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:projeto_flutter/data/models/capitulo_model.dart';
 
@@ -10,94 +12,154 @@ class ReaderScreen extends StatefulWidget {
   });
 
   @override
-  State<ReaderScreen> createState() => _ReaderScreenState();
+  State<ReaderScreen> createState() =>
+      _ReaderScreenState();
 }
 
-class _ReaderScreenState extends State<ReaderScreen> {
-  final PageController _controller = PageController();
+class _ReaderScreenState
+    extends State<ReaderScreen> {
+  final PageController _controller =
+      PageController();
 
   bool showUI = true;
 
   int currentPage = 0;
 
+  Widget _buildPagina(String caminho) {
+    // Página vinda dos assets
+    if (caminho.startsWith('assets/')) {
+      return Image.asset(
+        caminho,
+        fit: BoxFit.contain,
+
+        errorBuilder: (
+          context,
+          error,
+          stackTrace,
+        ) {
+          return const Center(
+            child: Icon(
+              Icons.broken_image,
+              size: 100,
+              color: Colors.white,
+            ),
+          );
+        },
+      );
+    }
+
+    // Página selecionada pelo usuário
+    return Image.file(
+      File(caminho),
+      fit: BoxFit.contain,
+
+      errorBuilder: (
+        context,
+        error,
+        stackTrace,
+      ) {
+        return const Center(
+          child: Icon(
+            Icons.broken_image,
+            size: 100,
+            color: Colors.white,
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+
       body: GestureDetector(
         onTap: () {
           setState(() {
             showUI = !showUI;
           });
         },
+
         child: Stack(
           children: [
             PageView.builder(
               controller: _controller,
-              itemCount: widget.capitulo.paginas.length,
+
+              itemCount:
+                  widget.capitulo.paginas.length,
+
               onPageChanged: (index) {
                 setState(() {
                   currentPage = index;
                 });
               },
-              itemBuilder: (context, index) {
+
+              itemBuilder: (
+                context,
+                index,
+              ) {
                 return InteractiveViewer(
-                    minScale: 1,
-                    maxScale: 4,
-                    child: Image.asset(
-                      widget.capitulo.paginas[index],
-                      fit: BoxFit.contain,
-                      errorBuilder: (
-                        context,
-                        error,
-                        stackTrace,
-                      ) {
-                        return const Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 100,
-                            color: Colors.white,
-                          ),
-                        );
-                      },
-                    ));
+                  minScale: 1,
+                  maxScale: 4,
+
+                  child: Center(
+                    child: _buildPagina(
+                      widget.capitulo
+                          .paginas[index],
+                    ),
+                  ),
+                );
               },
             ),
+
             if (showUI)
               Positioned(
                 top: 40,
                 left: 10,
+
                 child: SafeArea(
                   child: IconButton(
                     icon: const Icon(
                       Icons.arrow_back,
                       color: Colors.white,
                     ),
+
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pop(
+                        context,
+                      );
                     },
                   ),
                 ),
               ),
+
             if (showUI)
               Positioned(
                 bottom: 30,
                 left: 0,
                 right: 0,
+
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
+                    padding:
+                        const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
                     ),
+
                     decoration: BoxDecoration(
                       color: Colors.black54,
-                      borderRadius: BorderRadius.circular(
+
+                      borderRadius:
+                          BorderRadius.circular(
                         20,
                       ),
                     ),
+
                     child: Text(
-                      "${currentPage + 1} / ${widget.capitulo.paginas.length}",
+                      '${currentPage + 1} / ${widget.capitulo.paginas.length}',
+
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,

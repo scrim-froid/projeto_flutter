@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../data/models/obra_model.dart';
@@ -22,23 +24,7 @@ class ObraCard extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-              child: obra.capa.isNotEmpty
-                  ? Image.asset(
-                      obra.capa,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset('assets/capas/default.png');
-                      },
-                    )
-                  : Container(
-                      color: Colors.grey.shade800,
-                      child: const Center(
-                        child: Icon(
-                          Icons.auto_stories,
-                          size: 60,
-                        ),
-                      ),
-                    ),
+              child: _buildCapa(),
             ),
             Padding(
               padding: const EdgeInsets.all(12),
@@ -78,6 +64,54 @@ class ObraCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCapa() {
+    // imagem selecionada pelo usuário
+    if (obra.capa.isNotEmpty && !obra.capa.startsWith('assets/')) {
+      return Image.file(
+        File(obra.capa),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (
+          context,
+          error,
+          stackTrace,
+        ) {
+          return _imagemPadrao();
+        },
+      );
+    }
+
+    // imagem dos assets
+    if (obra.capa.isNotEmpty) {
+      return Image.asset(
+        obra.capa,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (
+          context,
+          error,
+          stackTrace,
+        ) {
+          return _imagemPadrao();
+        },
+      );
+    }
+
+    return _imagemPadrao();
+  }
+
+  Widget _imagemPadrao() {
+    return Container(
+      color: Colors.grey.shade800,
+      child: const Center(
+        child: Icon(
+          Icons.auto_stories,
+          size: 60,
         ),
       ),
     );
