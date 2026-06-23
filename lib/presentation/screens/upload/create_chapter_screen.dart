@@ -1,12 +1,10 @@
 import 'dart:io';
 
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/capitulo_model.dart';
 import '../../../data/models/obra_model.dart';
-import '../../../providers/obra_provider.dart';
 
 class CreateChapterScreen extends StatefulWidget {
   final ObraModel obra;
@@ -17,27 +15,29 @@ class CreateChapterScreen extends StatefulWidget {
   });
 
   @override
-  State<CreateChapterScreen> createState() => _CreateChapterScreenState();
+  State<CreateChapterScreen> createState() =>
+      _CreateChapterScreenState();
 }
 
-class _CreateChapterScreenState extends State<CreateChapterScreen> {
+class _CreateChapterScreenState
+    extends State<CreateChapterScreen> {
   final tituloController = TextEditingController();
 
   final numeroController = TextEditingController();
 
-  List<File> paginas = [];
+  final List<File> paginas = [];
 
-  Future<void> selecionarPaginas() async {
+  Future<void> selecionarPagina() async {
     final picker = ImagePicker();
 
-    final imagens = await picker.pickMultiImage();
+    final imagem = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
 
-    if (imagens.isNotEmpty) {
+    if (imagem != null) {
       setState(() {
-        paginas.addAll(
-          imagens.map(
-            (img) => File(img.path),
-          ),
+        paginas.add(
+          File(imagem.path),
         );
       });
     }
@@ -48,6 +48,65 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
     tituloController.dispose();
     numeroController.dispose();
     super.dispose();
+  }
+
+  void publicarCapitulo() {
+    if (tituloController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Informe o título do capítulo.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (numeroController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Informe o número do capítulo.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (paginas.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Adicione pelo menos uma página.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final novoCapitulo = CapituloModel(
+      numero: int.parse(
+        numeroController.text,
+      ),
+      titulo: tituloController.text,
+      paginas: paginas
+          .map((pagina) => pagina.path)
+          .toList(),
+    );
+
+    widget.obra.capitulos.add(
+      novoCapitulo,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Capítulo publicado com sucesso!',
+        ),
+      ),
+    );
+
+    Navigator.pop(context);
   }
 
   @override
@@ -68,31 +127,42 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
                 labelText: 'Título',
               ),
             ),
+
             const SizedBox(height: 16),
+
             TextField(
               controller: numeroController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: 'Número do capítulo',
+                labelText:
+                    'Número do capítulo',
               ),
             ),
+
             const SizedBox(height: 24),
+
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   'Páginas',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight.bold,
                   ),
                 ),
+
                 IconButton(
-                  onPressed: selecionarPaginas,
-                  icon: const Icon(Icons.add),
+                  onPressed: selecionarPagina,
+                  icon: const Icon(
+                    Icons.add,
+                  ),
                 ),
               ],
             ),
+
             Expanded(
               child: paginas.isEmpty
                   ? const Center(
@@ -101,8 +171,10 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
                       ),
                     )
                   : ListView.builder(
-                      itemCount: paginas.length,
-                      itemBuilder: (context, index) {
+                      itemCount:
+                          paginas.length,
+                      itemBuilder:
+                          (context, index) {
                         return Card(
                           child: ListTile(
                             leading: Image.file(
@@ -118,75 +190,12 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
                       },
                     ),
             ),
+
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () {
-                  if (tituloController.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Informe o título do capítulo.',
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-
-                  if (numeroController.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Informe o número do capítulo.',
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-
-                  if (paginas.isEmpty) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Adicione pelo menos uma página.',
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-
-                  final novoCapitulo = CapituloModel(
-                    numero: int.parse(
-                      numeroController.text,
-                    ),
-                    titulo: tituloController.text,
-                    paginas: paginas.map((e) => e.path).toList(),
-                  );
-
-                  widget.obra.capitulos.add(
-                    novoCapitulo,
-                  );
-
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Capítulo publicado com sucesso!',
-                      ),
-                    ),
-                  );
-
-                  Navigator.pop(
-                    context,
-                  );
-                },
+                onPressed:
+                    publicarCapitulo,
                 child: const Text(
                   'Publicar',
                 ),

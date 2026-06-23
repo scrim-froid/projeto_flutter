@@ -8,4 +8,24 @@ class CapituloModel {
     required this.titulo,
     required this.paginas,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'numero': numero,
+      'titulo': titulo,
+      'paginas': paginas,
+    };
+  }
+
+  factory CapituloModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return CapituloModel(
+      numero: json['numero'],
+      titulo: json['titulo'],
+      paginas: List<String>.from(
+        json['paginas'],
+      ),
+    );
+  }
 }

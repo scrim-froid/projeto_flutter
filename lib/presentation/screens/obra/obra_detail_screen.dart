@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_flutter/presentation/screens/upload/create_chapter_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -50,127 +51,93 @@ class ObraDetailScreen extends StatelessWidget {
                     ),
             ),
           ),
-
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
-
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     obra.titulo,
                     style: const TextStyle(
                       fontSize: 28,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(
                     obra.autor,
                     style: const TextStyle(
-                      color:
-                          AppColors.subtitle,
+                      color: AppColors.subtitle,
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   Row(
                     children: [
                       Container(
-                        padding:
-                            const EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
                         ),
-
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.primary,
-
-                          borderRadius:
-                              BorderRadius.circular(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(
                             20,
                           ),
                         ),
-
                         child: Text(
                           obra.genero,
                         ),
                       ),
-
                       const SizedBox(width: 8),
-
                       const Icon(
                         Icons.star,
                         color: Colors.amber,
                       ),
-
                       const SizedBox(width: 4),
-
                       Text(
-                        obra.avaliacao
-                            .toString(),
+                        obra.avaliacao.toString(),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 24),
-
                   const Text(
                     "Sinopse",
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   Text(
                     obra.sinopse,
                     style: const TextStyle(
                       height: 1.5,
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
                   Row(
                     children: [
                       Expanded(
-                        child:
-                            Consumer<FavoritosProvider>(
+                        child: Consumer<FavoritosProvider>(
                           builder: (
                             context,
                             favoritos,
                             child,
                           ) {
-                            final isFavorito =
-                                favoritos
-                                    .isFavorito(
+                            final isFavorito = favoritos.isFavorito(
                               obra,
                             );
 
                             return FilledButton.icon(
                               onPressed: () {
-                                favoritos
-                                    .toggleFavorito(
+                                favoritos.toggleFavorito(
                                   obra,
                                 );
 
-                                ScaffoldMessenger
-                                        .of(
-                                      context,
-                                    )
-                                    .showSnackBar(
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(
                                   SnackBar(
                                     content: Text(
                                       isFavorito
@@ -180,31 +147,23 @@ class ObraDetailScreen extends StatelessWidget {
                                   ),
                                 );
                               },
-
                               icon: Icon(
                                 isFavorito
                                     ? Icons.favorite
                                     : Icons.favorite_border,
                               ),
-
                               label: Text(
-                                isFavorito
-                                    ? "Favoritado"
-                                    : "Favoritar",
+                                isFavorito ? "Favoritado" : "Favoritar",
                               ),
                             );
                           },
                         ),
                       ),
-
                       const SizedBox(width: 12),
-
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: () {
-                            if (obra
-                                .capitulos
-                                .isEmpty) {
+                            if (obra.capitulos.isEmpty) {
                               ScaffoldMessenger.of(
                                 context,
                               ).showSnackBar(
@@ -221,84 +180,81 @@ class ObraDetailScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    ReaderScreen(
-                                  capitulo:
-                                      obra.capitulos
-                                          .first,
-                                ),
-                              ),
+                                  builder: (_) => ReaderScreen(
+                                        obra: obra,
+                                        capitulo: obra.capitulos.first,
+                                      )),
                             );
                           },
-
                           icon: const Icon(
                             Icons.menu_book,
                           ),
-
-                          label:
-                              const Text("Ler"),
+                          label: const Text("Ler"),
                         ),
                       ),
                     ],
                   ),
-
+                  FilledButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CreateChapterScreen(
+                            obra: obra,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.add,
+                    ),
+                    label: const Text(
+                      'Novo Capítulo',
+                    ),
+                  ),
                   const SizedBox(height: 32),
-
                   const Text(
                     "Capítulos",
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   if (obra.capitulos.isEmpty)
                     const Card(
                       child: Padding(
-                        padding:
-                            EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16),
                         child: Text(
                           'Nenhum capítulo publicado.',
                         ),
                       ),
                     ),
-
                   ...obra.capitulos.map(
                     (capitulo) => Card(
                       child: ListTile(
-                        leading:
-                            CircleAvatar(
+                        leading: CircleAvatar(
                           child: Text(
-                            capitulo.numero
-                                .toString(),
+                            capitulo.numero.toString(),
                           ),
                         ),
-
                         title: Text(
                           capitulo.titulo,
                         ),
-
                         subtitle: Text(
                           '${capitulo.paginas.length} páginas',
                         ),
-
                         trailing: const Icon(
                           Icons.arrow_forward_ios,
                         ),
-
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  ReaderScreen(
-                                capitulo:
-                                    capitulo,
-                              ),
-                            ),
+                                builder: (_) => ReaderScreen(
+                                      obra: obra,
+                                      capitulo: capitulo,
+                                    )),
                           );
                         },
                       ),

@@ -1,12 +1,12 @@
 import 'capitulo_model.dart';
 
 class ObraModel {
-  final String titulo;
-  final String autor;
-  final String capa;
-  final String genero;
-  final double avaliacao;
-  final String sinopse;
+  String titulo;
+  String autor;
+  String capa;
+  String genero;
+  double avaliacao;
+  String sinopse;
 
   List<CapituloModel> capitulos;
 
@@ -19,4 +19,47 @@ class ObraModel {
     required this.sinopse,
     required this.capitulos,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'titulo': titulo,
+      'autor': autor,
+      'capa': capa,
+      'genero': genero,
+      'avaliacao': avaliacao,
+      'sinopse': sinopse,
+
+      'capitulos': capitulos
+          .map((capitulo) => capitulo.toJson())
+          .toList(),
+    };
+  }
+
+  factory ObraModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return ObraModel(
+      titulo: json['titulo'],
+      autor: json['autor'],
+      capa: json['capa'],
+      genero: json['genero'],
+
+      avaliacao:
+          (json['avaliacao'] as num)
+              .toDouble(),
+
+      sinopse: json['sinopse'],
+
+      capitulos:
+          (json['capitulos'] as List?)
+                  ?.map(
+                    (capitulo) =>
+                        CapituloModel.fromJson(
+                      capitulo,
+                    ),
+                  )
+                  .toList() ??
+              [],
+    );
+  }
 }

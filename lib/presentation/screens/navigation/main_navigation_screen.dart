@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../providers/favoritos_provider.dart';
+import '../../../providers/obra_provider.dart';
 import '../home/home_screen.dart';
 import '../search/search_screen.dart';
 import '../favorites/favorites_screen.dart';
@@ -13,6 +16,8 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  bool carregado = false;
+
   int currentIndex = 0;
 
   final pages = [
@@ -24,7 +29,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('Indice atual: $currentIndex');
+    if (!carregado) {
+      carregado = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<FavoritosProvider>().carregarFavoritos(
+              context.read<ObraProvider>().obras,
+            );
+      });
+    }
     return Scaffold(
       body: Column(
         children: [

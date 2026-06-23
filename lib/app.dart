@@ -3,6 +3,7 @@ import 'package:projeto_flutter/presentation/screens/navigation/main_navigation_
 import 'package:projeto_flutter/presentation/screens/profile/author_profile_screen.dart';
 import 'package:projeto_flutter/presentation/screens/upload/create_work_screen.dart';
 import 'package:projeto_flutter/providers/favoritos_provider.dart';
+import 'package:projeto_flutter/providers/leitura_provider.dart';
 import 'package:projeto_flutter/providers/obra_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -23,6 +24,13 @@ class InkBRApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ObraProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = LeituraProvider();
+            provider.carregarLeitura();
+            return provider;
+          },
         ),
       ],
       child: MaterialApp(

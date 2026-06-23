@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_flutter/presentation/screens/profile/my_works_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() =>
-      _ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState
-    extends State<ProfileScreen> {
-
+class _ProfileScreenState extends State<ProfileScreen> {
   bool isAuthor = false;
 
   @override
@@ -19,13 +17,10 @@ class _ProfileScreenState
       appBar: AppBar(
         title: const Text('Perfil'),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-
         child: Column(
           children: [
-
             const CircleAvatar(
               radius: 50,
               child: Icon(
@@ -33,9 +28,7 @@ class _ProfileScreenState
                 size: 50,
               ),
             ),
-
             const SizedBox(height: 16),
-
             const Text(
               'André Moraes',
               style: TextStyle(
@@ -43,56 +36,38 @@ class _ProfileScreenState
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 10),
-
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 8,
               ),
-
               decoration: BoxDecoration(
-                color: isAuthor
-                    ? Colors.orange
-                    : Colors.blue,
-                borderRadius:
-                    BorderRadius.circular(20),
+                color: isAuthor ? Colors.orange : Colors.blue,
+                borderRadius: BorderRadius.circular(20),
               ),
-
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-
                   Icon(
-                    isAuthor
-                        ? Icons.edit_note
-                        : Icons.menu_book,
+                    isAuthor ? Icons.edit_note : Icons.menu_book,
                     color: Colors.white,
                   ),
-
                   const SizedBox(width: 8),
-
                   Text(
-                    isAuthor
-                        ? 'Autor'
-                        : 'Leitor',
+                    isAuthor ? 'Autor' : 'Leitor',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
-
             if (!isAuthor)
               SizedBox(
                 width: double.infinity,
-
                 child: FilledButton.icon(
                   onPressed: () {
                     setState(() {
@@ -109,43 +84,34 @@ class _ProfileScreenState
                       ),
                     );
                   },
-
                   icon: const Icon(Icons.edit),
-
                   label: const Text(
                     'Tornar-se Autor',
                   ),
                 ),
               ),
-
             const SizedBox(height: 24),
-
             if (isAuthor) ...[
               ListTile(
-                leading:
-                    const Icon(Icons.menu_book),
-
-                title:
-                    const Text('Minhas Obras'),
-
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
+                leading: const Icon(Icons.library_books),
+                title: const Text(
+                  'Minhas Obras',
                 ),
-
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MyWorksScreen(),
+                    ),
+                  );
+                },
               ),
-
               ListTile(
-                leading:
-                    const Icon(Icons.add),
-
-                title:
-                    const Text('Nova Obra'),
-
+                leading: const Icon(Icons.add),
+                title: const Text('Nova Obra'),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
-
                 onTap: () {
                   Navigator.pushNamed(
                     context,
@@ -153,76 +119,47 @@ class _ProfileScreenState
                   );
                 },
               ),
-
               ListTile(
-                leading:
-                    const Icon(Icons.bar_chart),
-
-                title:
-                    const Text('Estatísticas'),
-
+                leading: const Icon(Icons.bar_chart),
+                title: const Text('Estatísticas'),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
-
                 onTap: () {},
               ),
             ] else ...[
               ListTile(
-                leading:
-                    const Icon(Icons.favorite),
-
-                title:
-                    const Text('Favoritos'),
-
+                leading: const Icon(Icons.favorite),
+                title: const Text('Favoritos'),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
-
                 onTap: () {},
               ),
-
               ListTile(
-                leading:
-                    const Icon(Icons.history),
-
-                title:
-                    const Text('Histórico'),
-
+                leading: const Icon(Icons.history),
+                title: const Text('Histórico'),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
-
                 onTap: () {},
               ),
             ],
-
             const Divider(height: 32),
-
             ListTile(
-              leading:
-                  const Icon(Icons.settings),
-
-              title:
-                  const Text('Configurações'),
-
+              leading: const Icon(Icons.settings),
+              title: const Text('Configurações'),
               trailing: const Icon(
                 Icons.arrow_forward_ios,
               ),
-
               onTap: () {},
             ),
-
             ListTile(
-              leading:
-                  const Icon(Icons.logout),
-
+              leading: const Icon(Icons.logout),
               title: const Text('Sair'),
-
               trailing: const Icon(
                 Icons.arrow_forward_ios,
               ),
-
               onTap: () {},
             ),
           ],
