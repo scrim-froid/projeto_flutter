@@ -1,3 +1,5 @@
+import 'capitulo_model.dart';
+
 class ObraModel {
   final String titulo;
   final String autor;
@@ -6,12 +8,15 @@ class ObraModel {
   final double avaliacao;
   final String sinopse;
 
-  const ObraModel({
+  List<CapituloModel> capitulos;
+
+  ObraModel({
     required this.titulo,
     required this.autor,
     required this.capa,
     required this.genero,
     required this.avaliacao,
     required this.sinopse,
+    required this.capitulos,
   });
 }

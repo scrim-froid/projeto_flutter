@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_flutter/presentation/screens/navigation/main_navigation_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -18,9 +19,7 @@ class LoginScreen extends StatelessWidget {
                   size: 90,
                   color: Colors.orange,
                 ),
-
                 const SizedBox(height: 16),
-
                 const Text(
                   "InkBR",
                   style: TextStyle(
@@ -29,9 +28,7 @@ class LoginScreen extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
                 TextField(
                   decoration: InputDecoration(
                     hintText: "Email",
@@ -42,9 +39,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 TextField(
                   obscureText: true,
                   decoration: InputDecoration(
@@ -56,22 +51,21 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacementNamed(
+                      Navigator.pushReplacement(
                         context,
-                        '/main',
+                        MaterialPageRoute(
+                          builder: (_) => const MainNavigationScreen(),
+                        ),
                       );
                     },
                     child: const Text("Entrar"),
                   ),
                 ),
-
                 TextButton(
                   onPressed: () {},
                   child: const Text("Criar Conta"),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_flutter/data/mock/mock_obras.dart';
 import 'package:projeto_flutter/presentation/screens/obra/obra_detail_screen.dart';
+import 'package:projeto_flutter/providers/obra_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../../widgets/obra_card.dart';
 import '../../widgets/featured_banner.dart';
@@ -76,34 +77,39 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: mockObras.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.65,
-                ),
-                itemBuilder: (context, index) {
-                  final obra = mockObras[index];
+              Consumer<ObraProvider>(
+                builder: (context, provider, child) {
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: provider.obras.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.65,
+                    ),
+                    itemBuilder: (context, index) {
+                      final obra = provider.obras[index];
 
-                  return ObraCard(
-                    obra: obra,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ObraDetailScreen(
-                            obra: obra,
-                          ),
-                        ),
+                      return ObraCard(
+                        obra: obra,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ObraDetailScreen(
+                                obra: obra,
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
                 },
-              )
+              ),
             ],
           ),
         ),

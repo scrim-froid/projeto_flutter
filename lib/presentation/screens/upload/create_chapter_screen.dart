@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../data/models/capitulo_model.dart';
+import '../../../data/models/obra_model.dart';
+import '../../../providers/obra_provider.dart';
 
 class CreateChapterScreen extends StatefulWidget {
-  const CreateChapterScreen({super.key});
+  final ObraModel obra;
+
+  const CreateChapterScreen({
+    super.key,
+    required this.obra,
+  });
 
   @override
   State<CreateChapterScreen> createState() =>
@@ -17,16 +27,22 @@ class _CreateChapterScreenState
   final numeroController =
       TextEditingController();
 
-  final paginas = <String>[
-    'Página 1',
-    'Página 2',
-  ];
+  final List<String> paginas = [];
+
+  @override
+  void dispose() {
+    tituloController.dispose();
+    numeroController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Novo Capítulo'),
+        title: const Text(
+          'Novo Capítulo',
+        ),
       ),
 
       body: Padding(
@@ -83,28 +99,54 @@ class _CreateChapterScreenState
                     });
                   },
 
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(
+                    Icons.add,
+                  ),
                 ),
               ],
             ),
 
             Expanded(
-              child: ListView.builder(
-                itemCount: paginas.length,
+              child: paginas.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Nenhuma página adicionada',
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount:
+                          paginas.length,
 
-                itemBuilder:
-                    (context, index) {
-                  return Card(
-                    child: ListTile(
-                      leading:
-                          const Icon(Icons.image),
+                      itemBuilder:
+                          (context, index) {
+                        return Card(
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.image,
+                            ),
 
-                      title:
-                          Text(paginas[index]),
+                            title: Text(
+                              paginas[index],
+                            ),
+
+                            trailing:
+                                IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                              ),
+
+                              onPressed: () {
+                                setState(() {
+                                  paginas.removeAt(
+                                    index,
+                                  );
+                                });
+                              },
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
 
             SizedBox(
@@ -112,6 +154,75 @@ class _CreateChapterScreenState
 
               child: FilledButton(
                 onPressed: () {
+
+                  if (tituloController
+                      .text
+                      .trim()
+                      .isEmpty) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Informe o título do capítulo.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (numeroController
+                      .text
+                      .trim()
+                      .isEmpty) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Informe o número do capítulo.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (paginas.isEmpty) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Adicione pelo menos uma página.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final novoCapitulo =
+                      CapituloModel(
+                    numero: int.parse(
+                      numeroController.text,
+                    ),
+
+                    titulo:
+                        tituloController.text,
+
+                    paginas: List.generate(
+                      paginas.length,
+                      (index) =>
+                          'assets/pages/default.png',
+                    ),
+                  );
+
+                  context
+                      .read<ObraProvider>()
+                      .adicionarCapitulo(
+                        widget.obra,
+                        novoCapitulo,
+                      );
+
                   ScaffoldMessenger.of(
                     context,
                   ).showSnackBar(
@@ -120,6 +231,10 @@ class _CreateChapterScreenState
                         'Capítulo publicado com sucesso!',
                       ),
                     ),
+                  );
+
+                  Navigator.pop(
+                    context,
                   );
                 },
 

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../data/models/obra_model.dart';
+import '../../../providers/obra_provider.dart';
 
 class CreateWorkScreen extends StatefulWidget {
   const CreateWorkScreen({super.key});
@@ -14,124 +18,132 @@ class _CreateWorkScreenState
   final tituloController =
       TextEditingController();
 
-  final descricaoController =
+  final autorController =
       TextEditingController();
 
-  String genero = 'Ação';
+  final generoController =
+      TextEditingController();
+
+  final sinopseController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nova Obra'),
+        title: const Text(
+          'Nova Obra',
+        ),
       ),
 
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding:
+            const EdgeInsets.all(16),
 
         child: Column(
           children: [
 
-            GestureDetector(
-              onTap: () {},
-
-              child: Container(
-                height: 220,
-                width: 160,
-
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade800,
-                  borderRadius:
-                      BorderRadius.circular(16),
-                ),
-
-                child: const Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
-
-                  children: [
-                    Icon(
-                      Icons.image,
-                      size: 60,
-                    ),
-
-                    SizedBox(height: 8),
-
-                    Text(
-                      'Selecionar capa',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
             TextField(
-              controller: tituloController,
+              controller:
+                  tituloController,
 
-              decoration: const InputDecoration(
+              decoration:
+                  const InputDecoration(
                 labelText: 'Título',
               ),
             ),
 
             const SizedBox(height: 16),
 
-            DropdownButtonFormField(
-              value: genero,
+            TextField(
+              controller:
+                  autorController,
 
-              items: const [
-                DropdownMenuItem(
-                  value: 'Ação',
-                  child: Text('Ação'),
-                ),
-                DropdownMenuItem(
-                  value: 'Fantasia',
-                  child: Text('Fantasia'),
-                ),
-                DropdownMenuItem(
-                  value: 'Drama',
-                  child: Text('Drama'),
-                ),
-                DropdownMenuItem(
-                  value: 'Terror',
-                  child: Text('Terror'),
-                ),
-              ],
-
-              onChanged: (value) {
-                setState(() {
-                  genero = value!;
-                });
-              },
+              decoration:
+                  const InputDecoration(
+                labelText: 'Autor',
+              ),
             ),
 
             const SizedBox(height: 16),
 
             TextField(
-              controller: descricaoController,
-              maxLines: 5,
+              controller:
+                  generoController,
 
-              decoration: const InputDecoration(
+              decoration:
+                  const InputDecoration(
+                labelText: 'Gênero',
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            TextField(
+              controller:
+                  sinopseController,
+
+              maxLines: 4,
+
+              decoration:
+                  const InputDecoration(
                 labelText: 'Sinopse',
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             SizedBox(
               width: double.infinity,
 
               child: FilledButton(
                 onPressed: () {
-                  Navigator.pushNamed(
+
+                  final novaObra =
+                      ObraModel(
+                    titulo:
+                        tituloController.text,
+
+                    autor:
+                        autorController.text,
+
+                    genero:
+                        generoController.text,
+
+                    sinopse:
+                        sinopseController.text,
+
+                    avaliacao: 0,
+
+                    capa:
+                        'assets/capas/default.png',
+
+                    capitulos: [],
+                  );
+
+                  context
+                      .read<ObraProvider>()
+                      .adicionarObra(
+                        novaObra,
+                      );
+
+                  ScaffoldMessenger.of(
                     context,
-                    '/create-chapter',
+                  ).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Obra publicada!',
+                      ),
+                    ),
+                  );
+
+                  Navigator.pop(
+                    context,
                   );
                 },
 
                 child: const Text(
-                  'Próximo',
+                  'Publicar',
                 ),
               ),
             ),

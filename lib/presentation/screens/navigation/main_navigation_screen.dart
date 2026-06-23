@@ -9,54 +9,53 @@ class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() =>
-      _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState
-    extends State<MainNavigationScreen> {
-
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int currentIndex = 0;
 
-  final List<Widget> pages = const [
-    HomeScreen(),
-    SearchScreen(),
-    FavoritesScreen(),
-    ProfileScreen(),
+  final pages = [
+    const HomeScreen(),
+    const SearchScreen(),
+    const FavoritesScreen(),
+    const ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    print('Indice atual: $currentIndex');
     return Scaffold(
-      body: pages[currentIndex],
-
+      body: Column(
+        children: [
+          const Text('TESTE'),
+          Expanded(
+            child: pages[currentIndex],
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
-
         onDestinationSelected: (index) {
           setState(() {
             currentIndex = index;
           });
         },
-
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
-
           NavigationDestination(
             icon: Icon(Icons.search),
             label: 'Buscar',
           ),
-
           NavigationDestination(
             icon: Icon(Icons.favorite_outline),
             selectedIcon: Icon(Icons.favorite),
             label: 'Favoritos',
           ),
-
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
