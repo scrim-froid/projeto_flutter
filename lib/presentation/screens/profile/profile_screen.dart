@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_flutter/presentation/screens/history/history_screen.dart';
 import 'package:projeto_flutter/presentation/screens/profile/my_works_screen.dart';
+import 'package:projeto_flutter/presentation/screens/stats/stats_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -129,12 +131,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ] else ...[
               ListTile(
-                leading: const Icon(Icons.favorite),
-                title: const Text('Favoritos'),
+                leading: const Icon(Icons.bar_chart),
+                title: const Text('Estatísticas'),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const StatsScreen(),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.history),
@@ -142,7 +151,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const HistoryScreen(),
+                    ),
+                  );
+                },
               ),
             ],
             const Divider(height: 32),

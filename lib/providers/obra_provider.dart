@@ -88,4 +88,16 @@ class ObraProvider extends ChangeNotifier {
     await salvarObras();
     notifyListeners();
   }
+
+  List<ObraModel> buscarObras(String texto) {
+    if (texto.isEmpty) {
+      return obras;
+    }
+
+    return obras.where((obra) {
+      return obra.titulo.toLowerCase().contains(texto.toLowerCase()) ||
+          obra.autor.toLowerCase().contains(texto.toLowerCase()) ||
+          obra.genero.toLowerCase().contains(texto.toLowerCase());
+    }).toList();
+  }
 }

@@ -1,7 +1,9 @@
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_flutter/presentation/screens/upload/create_chapter_screen.dart';
 import 'package:provider/provider.dart';
 
+import '../../../providers/obra_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/obra_model.dart';
 import '../../../providers/favoritos_provider.dart';
@@ -162,28 +164,37 @@ class ObraDetailScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed: () {
+                          onPressed: () async {
                             if (obra.capitulos.isEmpty) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).showSnackBar(
+                              ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
                                     'Esta obra ainda não possui capítulos.',
                                   ),
                                 ),
                               );
-
                               return;
                             }
+
+                            final obraIndex = context
+                                .read<ObraProvider>()
+                                .obras
+                                .indexOf(obra);
+
+                            obra.visualizacoes++;
+
+                            await context.read<ObraProvider>().atualizarObra();
 
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) => ReaderScreen(
-                                        obra: obra,
-                                        capitulo: obra.capitulos.first,
-                                      )),
+                                builder: (_) => ReaderScreen(
+                                  obra: obra,
+                                  capitulo: obra.capitulos.first,
+                                  obraIndex: obraIndex,
+                                  capituloIndex: 0,
+                                ),
+                              ),
                             );
                           },
                           icon: const Icon(
@@ -230,35 +241,48 @@ class ObraDetailScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ...obra.capitulos.map(
-                    (capitulo) => Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          child: Text(
-                            capitulo.numero.toString(),
+                  ...obra.capitulos.asMap().entries.map(
+                    (entry) {
+                      final capituloIndex = entry.key;
+                      final capitulo = entry.value;
+
+                      return Card(
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            child: Text(
+                              capitulo.numero.toString(),
+                            ),
                           ),
-                        ),
-                        title: Text(
-                          capitulo.titulo,
-                        ),
-                        subtitle: Text(
-                          '${capitulo.paginas.length} páginas',
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios,
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
+                          title: Text(
+                            capitulo.titulo,
+                          ),
+                          subtitle: Text(
+                            '${capitulo.paginas.length} páginas',
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                          ),
+                          onTap: () {
+                            final obraIndex = context
+                                .read<ObraProvider>()
+                                .obras
+                                .indexOf(obra);
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
                                 builder: (_) => ReaderScreen(
-                                      obra: obra,
-                                      capitulo: capitulo,
-                                    )),
-                          );
-                        },
-                      ),
-                    ),
+                                  obra: obra,
+                                  capitulo: capitulo,
+                                  obraIndex: obraIndex,
+                                  capituloIndex: capituloIndex,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

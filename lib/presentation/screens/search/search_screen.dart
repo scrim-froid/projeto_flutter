@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/obra_provider.dart';
-import '../obra/obra_detail_screen.dart';
-import '../../widgets/obra_card.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -16,95 +14,72 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState
     extends State<SearchScreen> {
 
-  String pesquisa = '';
+  String busca = '';
 
   @override
   Widget build(BuildContext context) {
 
-    final obras =
-        context.watch<ObraProvider>().obras;
+    final provider =
+        context.watch<ObraProvider>();
 
-    final resultados = obras.where((obra) {
-
-      return obra.titulo
-              .toLowerCase()
-              .contains(
-                pesquisa.toLowerCase(),
-              ) ||
-          obra.genero
-              .toLowerCase()
-              .contains(
-                pesquisa.toLowerCase(),
-              );
-
-    }).toList();
+    final resultados =
+        provider.buscarObras(busca);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Buscar'),
+        title: const Text(
+          'Buscar Obras',
+        ),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: Column(
+        children: [
 
-        child: Column(
-          children: [
+          Padding(
+            padding:
+                const EdgeInsets.all(16),
 
-            TextField(
+            child: TextField(
               decoration:
                   const InputDecoration(
                 hintText:
-                    'Buscar obra...',
+                    'Título, autor ou gênero',
                 prefixIcon:
                     Icon(Icons.search),
               ),
 
               onChanged: (value) {
                 setState(() {
-                  pesquisa = value;
+                  busca = value;
                 });
               },
             ),
+          ),
 
-            const SizedBox(height: 20),
+          Expanded(
+            child: ListView.builder(
+              itemCount:
+                  resultados.length,
 
-            Expanded(
-              child: GridView.builder(
-                itemCount: resultados.length,
+              itemBuilder:
+                  (context, index) {
 
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.65,
-                ),
+                final obra =
+                    resultados[index];
 
-                itemBuilder:
-                    (context, index) {
+                return ListTile(
+                  title: Text(
+                    obra.titulo,
+                  ),
 
-                  final obra =
-                      resultados[index];
-
-                  return ObraCard(
-                    obra: obra,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              ObraDetailScreen(
-                            obra: obra,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+                  subtitle: Text(
+                    obra.autor,
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

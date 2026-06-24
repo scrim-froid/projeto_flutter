@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_flutter/presentation/screens/obra/obra_detail_screen.dart';
 import 'package:projeto_flutter/providers/obra_provider.dart';
+import 'package:projeto_flutter/services/firebase_test.dart';
 import 'package:provider/provider.dart';
 
-import '../../widgets/obra_card.dart';
-import '../../widgets/featured_banner.dart';
 import '../../widgets/continue_reading_card.dart';
+import '../../widgets/featured_banner.dart';
+import '../../widgets/obra_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String busca = '';
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +35,16 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                decoration: const InputDecoration(
                   hintText: 'Pesquisar HQs e Mangás',
                   prefixIcon: Icon(Icons.search),
                 ),
+                onChanged: (value) {
+                  setState(() {
+                    busca = value;
+                  });
+                },
               ),
               const SizedBox(height: 20),
               const FeaturedBanner(),
@@ -46,7 +59,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               const ContinueReadingCard(),
               const SizedBox(height: 24),
               const Align(
@@ -59,30 +72,67 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
               const SizedBox(height: 16),
               SizedBox(
                 height: 40,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: const [
-                    Chip(label: Text('Ação')),
+                    Chip(
+                      label: Text('Ação'),
+                    ),
                     SizedBox(width: 8),
-                    Chip(label: Text('Fantasia')),
+                    Chip(
+                      label: Text(
+                        'Fantasia',
+                      ),
+                    ),
                     SizedBox(width: 8),
-                    Chip(label: Text('Drama')),
+                    Chip(
+                      label: Text('Drama'),
+                    ),
                     SizedBox(width: 8),
-                    Chip(label: Text('Terror')),
+                    Chip(
+                      label: Text('Terror'),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               Consumer<ObraProvider>(
-                builder: (context, provider, child) {
+                builder: (
+                  context,
+                  provider,
+                  child,
+                ) {
+                  final resultados = provider.buscarObras(
+                    busca,
+                  );
+
+                  if (resultados.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(
+                        32,
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Nenhuma obra encontrada',
+                        ),
+                      ),
+                    );
+                  }
+
+                  FilledButton(
+                    onPressed: () async {
+                      await FirebaseTest.testar();
+                    },
+                    child: const Text('Testar Firebase'),
+                  );
+
                   return GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: provider.obras.length,
+                    itemCount: resultados.length,
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
@@ -91,7 +141,7 @@ class HomeScreen extends StatelessWidget {
                       childAspectRatio: 0.65,
                     ),
                     itemBuilder: (context, index) {
-                      final obra = provider.obras[index];
+                      final obra = resultados[index];
 
                       return ObraCard(
                         obra: obra,

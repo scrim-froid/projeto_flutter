@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/leitura_provider.dart';
+import '../../providers/obra_provider.dart';
+import '../screens/reader/reader_screen.dart';
 
 class ContinueReadingCard extends StatelessWidget {
   const ContinueReadingCard({
@@ -39,11 +41,52 @@ class ContinueReadingCard extends StatelessWidget {
           Icons.play_arrow,
         ),
         onTap: () {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Continuar leitura será implementado em seguida.',
+          final obras =
+              context.read<ObraProvider>().obras;
+
+          if (leitura.obraIndex >= obras.length) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Obra não encontrada.',
+                ),
+              ),
+            );
+            return;
+          }
+
+          final obra =
+              obras[leitura.obraIndex];
+
+          if (leitura.capituloIndex >=
+              obra.capitulos.length) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Capítulo não encontrado.',
+                ),
+              ),
+            );
+            return;
+          }
+
+          final capitulo =
+              obra.capitulos[
+                  leitura.capituloIndex];
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ReaderScreen(
+                obra: obra,
+                capitulo: capitulo,
+                obraIndex: leitura.obraIndex,
+                capituloIndex:
+                    leitura.capituloIndex,
+                paginaInicial:
+                    leitura.paginaAtual,
               ),
             ),
           );

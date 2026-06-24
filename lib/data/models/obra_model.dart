@@ -3,10 +3,13 @@ import 'capitulo_model.dart';
 class ObraModel {
   String titulo;
   String autor;
-  String capa;
+  final String capa;
   String genero;
   double avaliacao;
   String sinopse;
+
+  int visualizacoes;
+  int favoritos;
 
   List<CapituloModel> capitulos;
 
@@ -18,6 +21,8 @@ class ObraModel {
     required this.avaliacao,
     required this.sinopse,
     required this.capitulos,
+    this.visualizacoes = 0,
+    this.favoritos = 0,
   });
 
   Map<String, dynamic> toJson() {
@@ -28,10 +33,9 @@ class ObraModel {
       'genero': genero,
       'avaliacao': avaliacao,
       'sinopse': sinopse,
-
-      'capitulos': capitulos
-          .map((capitulo) => capitulo.toJson())
-          .toList(),
+      'visualizacoes': visualizacoes,
+      'favoritos': favoritos,
+      'capitulos': capitulos.map((capitulo) => capitulo.toJson()).toList(),
     };
   }
 
@@ -43,23 +47,18 @@ class ObraModel {
       autor: json['autor'],
       capa: json['capa'],
       genero: json['genero'],
-
-      avaliacao:
-          (json['avaliacao'] as num)
-              .toDouble(),
-
+      avaliacao: (json['avaliacao'] as num).toDouble(),
       sinopse: json['sinopse'],
-
-      capitulos:
-          (json['capitulos'] as List?)
-                  ?.map(
-                    (capitulo) =>
-                        CapituloModel.fromJson(
-                      capitulo,
-                    ),
-                  )
-                  .toList() ??
-              [],
+      capitulos: (json['capitulos'] as List?)
+              ?.map(
+                (capitulo) => CapituloModel.fromJson(
+                  capitulo,
+                ),
+              )
+              .toList() ??
+          [],
+      visualizacoes: json['visualizacoes'] ?? 0,
+      favoritos: json['favoritos'] ?? 0,
     );
   }
 }

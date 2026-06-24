@@ -10,12 +10,18 @@ import '../../../data/models/leitura_model.dart';
 class ReaderScreen extends StatefulWidget {
   final ObraModel obra;
   final CapituloModel capitulo;
+
+  final int obraIndex;
+  final int capituloIndex;
+
   final int paginaInicial;
 
   const ReaderScreen({
     super.key,
     required this.obra,
     required this.capitulo,
+    required this.obraIndex,
+    required this.capituloIndex,
     this.paginaInicial = 0,
   });
 
@@ -113,6 +119,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       LeituraModel(
                         obraTitulo: widget.obra.titulo,
                         capituloTitulo: widget.capitulo.titulo,
+                        obraIndex: widget.obraIndex,
+                        capituloIndex: widget.capituloIndex,
                         paginaAtual: index,
                         totalPaginas: widget.capitulo.paginas.length,
                       ),
