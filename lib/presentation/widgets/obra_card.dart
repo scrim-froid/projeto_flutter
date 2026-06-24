@@ -23,6 +23,19 @@ class ObraCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.star,
+                  color: Colors.amber,
+                  size: 18,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  obra.avaliacao.toStringAsFixed(1),
+                ),
+              ],
+            ),
             Expanded(
               child: _buildCapa(),
             ),
@@ -56,10 +69,14 @@ class ObraCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        obra.avaliacao.toString(),
+                        obra.avaliacao.toStringAsFixed(1),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '(${obra.totalAvaliacoes})',
                       ),
                     ],
-                  ),
+                  )
                 ],
               ),
             ),
@@ -88,7 +105,7 @@ class ObraCard extends StatelessWidget {
 
     // imagem dos assets
     if (obra.capa.isNotEmpty) {
-      return Image.asset(
+      return Image.network(
         obra.capa,
         fit: BoxFit.cover,
         width: double.infinity,

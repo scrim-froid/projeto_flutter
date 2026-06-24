@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_flutter/presentation/screens/upload/edit_work_screen.dart';
 import 'package:provider/provider.dart';
@@ -13,20 +14,31 @@ class MyWorksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<ObraProvider>();
 
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text('Usuário não autenticado'),
+        ),
+      );
+    }
+
+    final minhasObras = provider.minhasObras(uid);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Minhas Obras'),
       ),
-      body: provider.obras.isEmpty
+      body: minhasObras.isEmpty
           ? const Center(
               child: Text(
                 'Você ainda não publicou nenhuma obra.',
               ),
             )
           : ListView.builder(
-              itemCount: provider.obras.length,
+              itemCount: minhasObras.length,
               itemBuilder: (context, index) {
-                final obra = provider.obras[index];
+                final obra = minhasObras[index];
 
                 return Card(
                   child: ListTile(

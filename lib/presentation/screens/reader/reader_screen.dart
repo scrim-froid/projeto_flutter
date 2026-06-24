@@ -54,44 +54,36 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   Widget _buildPagina(String caminho) {
-    // Página vinda dos assets
-    if (caminho.startsWith('assets/')) {
-      return Image.asset(
+    if (caminho.startsWith('http')) {
+      return Image.network(
         caminho,
         fit: BoxFit.contain,
-        errorBuilder: (
+        loadingBuilder: (
           context,
-          error,
-          stackTrace,
+          child,
+          progress,
         ) {
+          if (progress == null) {
+            return child;
+          }
+
           return const Center(
-            child: Icon(
-              Icons.broken_image,
-              size: 100,
-              color: Colors.white,
-            ),
+            child: CircularProgressIndicator(),
           );
         },
       );
     }
 
-    // Página selecionada pelo usuário
+    if (caminho.startsWith('assets/')) {
+      return Image.asset(
+        caminho,
+        fit: BoxFit.contain,
+      );
+    }
+
     return Image.file(
       File(caminho),
       fit: BoxFit.contain,
-      errorBuilder: (
-        context,
-        error,
-        stackTrace,
-      ) {
-        return const Center(
-          child: Icon(
-            Icons.broken_image,
-            size: 100,
-            color: Colors.white,
-          ),
-        );
-      },
     );
   }
 

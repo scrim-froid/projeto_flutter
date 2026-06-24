@@ -24,7 +24,7 @@ class CapituloModel {
       numero: json['numero'],
       titulo: json['titulo'],
       paginas: List<String>.from(
-        json['paginas'],
+        json['paginas'] ?? [],
       ),
     );
   }

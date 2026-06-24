@@ -102,7 +102,7 @@ class _EditWorkScreenState extends State<EditWorkScreen> {
 
                   widget.obra.sinopse = sinopseController.text;
 
-                  await context.read<ObraProvider>().atualizarObra();
+                  await context.read<ObraProvider>().atualizarObra(widget.obra);
 
                   if (context.mounted) {
                     Navigator.pop(context);

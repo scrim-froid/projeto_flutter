@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -32,10 +33,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     if (!carregado) {
       carregado = true;
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<FavoritosProvider>().carregarFavoritos(
-              context.read<ObraProvider>().obras,
-            );
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final uid = FirebaseAuth.instance.currentUser!.uid;
+
+        await context.read<FavoritosProvider>().carregarFavoritos(uid);
       });
     }
     return Scaffold(

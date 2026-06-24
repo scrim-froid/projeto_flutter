@@ -48,14 +48,14 @@ class FeaturedBanner extends StatelessWidget {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ObraDetailScreen(
-                      obra: mockObras.first,
-                    ),
-                  ),
-                );
+                //Navigator.push(
+                  //context,
+                  //MaterialPageRoute(
+                    //builder: (_) => ObraDetailScreen(
+                      //obra: mockObras.first,
+                    //),
+                  //),
+                //);
               },
               child: const Text('Ler Agora'),
             ),

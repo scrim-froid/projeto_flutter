@@ -1,3 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:projeto_flutter/presentation/screens/comments/comments_screen.dart';
+import 'package:projeto_flutter/presentation/screens/profile/author_profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_flutter/presentation/screens/upload/create_chapter_screen.dart';
@@ -27,7 +30,7 @@ class ObraDetailScreen extends StatelessWidget {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: obra.capa.isNotEmpty
-                  ? Image.asset(
+                  ? Image.network(
                       obra.capa,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) {
@@ -67,10 +70,23 @@ class ObraDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    obra.autor,
-                    style: const TextStyle(
-                      color: AppColors.subtitle,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AuthorProfileScreen(
+                            autorId: obra.autorId,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      obra.autorNome,
+                      style: const TextStyle(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -90,6 +106,22 @@ class ObraDetailScreen extends StatelessWidget {
                         child: Text(
                           obra.genero,
                         ),
+                      ),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            obra.avaliacao.toStringAsFixed(1),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '(${obra.totalAvaliacoes})',
+                          ),
+                        ],
                       ),
                       const SizedBox(width: 8),
                       const Icon(
@@ -117,6 +149,22 @@ class ObraDetailScreen extends StatelessWidget {
                       height: 1.5,
                     ),
                   ),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.comment),
+                    label: const Text(
+                      'Comentários',
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CommentsScreen(
+                            obra: obra,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   const SizedBox(height: 24),
                   Row(
                     children: [
@@ -128,25 +176,16 @@ class ObraDetailScreen extends StatelessWidget {
                             child,
                           ) {
                             final isFavorito = favoritos.isFavorito(
-                              obra,
+                              obra.id,
                             );
 
-                            return FilledButton.icon(
-                              onPressed: () {
-                                favoritos.toggleFavorito(
-                                  obra,
-                                );
+                            final uid = FirebaseAuth.instance.currentUser!.uid;
 
-                                ScaffoldMessenger.of(
-                                  context,
-                                ).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      isFavorito
-                                          ? "Removido dos favoritos"
-                                          : "Adicionado aos favoritos",
-                                    ),
-                                  ),
+                            return FilledButton.icon(
+                              onPressed: () async {
+                                await favoritos.toggleFavorito(
+                                  uid: uid,
+                                  obra: obra,
                                 );
                               },
                               icon: Icon(
@@ -155,7 +194,7 @@ class ObraDetailScreen extends StatelessWidget {
                                     : Icons.favorite_border,
                               ),
                               label: Text(
-                                isFavorito ? "Favoritado" : "Favoritar",
+                                isFavorito ? 'Favoritado' : 'Favoritar',
                               ),
                             );
                           },
@@ -183,7 +222,9 @@ class ObraDetailScreen extends StatelessWidget {
 
                             obra.visualizacoes++;
 
-                            await context.read<ObraProvider>().atualizarObra();
+                            await context
+                                .read<ObraProvider>()
+                                .atualizarObra(obra);
 
                             Navigator.push(
                               context,
@@ -267,6 +308,25 @@ class ObraDetailScreen extends StatelessWidget {
                                 .read<ObraProvider>()
                                 .obras
                                 .indexOf(obra);
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  obra.avaliacao.toStringAsFixed(1),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '(${obra.totalAvaliacoes} avaliações)',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                              ],
+                            );
 
                             Navigator.push(
                               context,

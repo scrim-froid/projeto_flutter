@@ -1,21 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../providers/obra_provider.dart';
+import '../obra/obra_detail_screen.dart';
 
 class AuthorProfileScreen extends StatelessWidget {
-  const AuthorProfileScreen({super.key});
+  final String autorId;
+
+  const AuthorProfileScreen({
+    super.key,
+    required this.autorId,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final obras = [
-      'Samurai do Sertão',
-      'Cyber Brasil',
-    ];
+    final obraProvider =
+        context.watch<ObraProvider>();
+
+    final obras =
+        obraProvider.obrasDoAutor(
+      autorId,
+    );
+
+    final nomeAutor = obras.isNotEmpty
+        ? obras.first.autorNome
+        : 'Autor';
+
+    final totalViews = obras.fold(
+      0,
+      (total, obra) =>
+          total + obra.visualizacoes,
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil do Autor'),
+        title: const Text(
+          'Perfil do Autor',
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding:
+            const EdgeInsets.all(16),
         child: Column(
           children: [
             const CircleAvatar(
@@ -28,41 +53,38 @@ class AuthorProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            const Text(
-              'André Moraes',
-              style: TextStyle(
+            Text(
+              nomeAutor,
+              style: const TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                    FontWeight.bold,
               ),
             ),
 
             const Text('Autor'),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 8),
 
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/create-work',
-                  );
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Nova Obra'),
-              ),
+            Text(
+              '${obras.length} obras publicadas',
+            ),
+
+            Text(
+              '$totalViews visualizações',
             ),
 
             const SizedBox(height: 24),
 
             const Align(
-              alignment: Alignment.centerLeft,
+              alignment:
+                  Alignment.centerLeft,
               child: Text(
-                'Minhas Obras',
+                'Obras Publicadas',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight:
+                      FontWeight.bold,
                 ),
               ),
             ),
@@ -70,20 +92,59 @@ class AuthorProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             Expanded(
-              child: ListView.builder(
-                itemCount: obras.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.menu_book),
-                      title: Text(obras[index]),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios,
+              child: obras.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Nenhuma obra encontrada.',
                       ),
+                    )
+                  : ListView.builder(
+                      itemCount:
+                          obras.length,
+                      itemBuilder:
+                          (
+                            context,
+                            index,
+                          ) {
+                        final obra =
+                            obras[index];
+
+                        return Card(
+                          child: ListTile(
+                            leading:
+                                const Icon(
+                              Icons
+                                  .menu_book,
+                            ),
+                            title: Text(
+                              obra.titulo,
+                            ),
+                            subtitle:
+                                Text(
+                              obra.genero,
+                            ),
+                            trailing:
+                                const Icon(
+                              Icons
+                                  .arrow_forward_ios,
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) =>
+                                          ObraDetailScreen(
+                                    obra:
+                                        obra,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

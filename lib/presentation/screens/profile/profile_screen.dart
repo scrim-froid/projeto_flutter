@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_flutter/presentation/screens/history/history_screen.dart';
-import 'package:projeto_flutter/presentation/screens/profile/my_works_screen.dart';
-import 'package:projeto_flutter/presentation/screens/stats/stats_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:provider/provider.dart';
+
+import '../../../providers/auth_provider.dart';
+import '../../../providers/user_provider.dart';
+
+import '../history/history_screen.dart';
+import '../profile/my_works_screen.dart';
+import '../stats/stats_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,13 +17,42 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool isAuthor = false;
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) return;
+
+      await context.read<UserProvider>().carregarUsuario(user.uid);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final authUser = FirebaseAuth.instance.currentUser;
+
+    final userProvider = context.watch<UserProvider>();
+
+    final usuario = userProvider.usuario;
+
+    if (usuario == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    final isAuthor = usuario.isAuthor;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil'),
+        title: const Text(
+          'Perfil',
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -31,13 +66,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'André Moraes',
-              style: TextStyle(
+            Text(
+              usuario.nome.isNotEmpty
+                  ? usuario.nome
+                  : authUser?.email ?? 'Usuário',
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
+            if (usuario.bio.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 8,
+                ),
+                child: Text(
+                  usuario.bio,
+                  textAlign: TextAlign.center,
+                ),
+              ),
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.symmetric(
@@ -46,7 +93,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               decoration: BoxDecoration(
                 color: isAuthor ? Colors.orange : Colors.blue,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(
+                  20,
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -55,7 +104,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     isAuthor ? Icons.edit_note : Icons.menu_book,
                     color: Colors.white,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(
+                    width: 8,
+                  ),
                   Text(
                     isAuthor ? 'Autor' : 'Leitor',
                     style: const TextStyle(
@@ -71,10 +122,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      isAuthor = true;
-                    });
+                  onPressed: () async {
+                    await context.read<UserProvider>().tornarAutor();
+
+                    if (!mounted) return;
 
                     ScaffoldMessenger.of(
                       context,
@@ -86,7 +137,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.edit),
+                  icon: const Icon(
+                    Icons.edit,
+                  ),
                   label: const Text(
                     'Tornar-se Autor',
                   ),
@@ -95,9 +148,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
             if (isAuthor) ...[
               ListTile(
-                leading: const Icon(Icons.library_books),
+                leading: const Icon(
+                  Icons.library_books,
+                ),
                 title: const Text(
                   'Minhas Obras',
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
                 ),
                 onTap: () {
                   Navigator.push(
@@ -109,8 +167,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.add),
-                title: const Text('Nova Obra'),
+                leading: const Icon(
+                  Icons.add,
+                ),
+                title: const Text(
+                  'Nova Obra',
+                ),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
@@ -122,17 +184,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.bar_chart),
-                title: const Text('Estatísticas'),
+                leading: const Icon(
+                  Icons.bar_chart,
+                ),
+                title: const Text(
+                  'Estatísticas',
+                ),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const StatsScreen(),
+                    ),
+                  );
+                },
               ),
             ] else ...[
               ListTile(
-                leading: const Icon(Icons.bar_chart),
-                title: const Text('Estatísticas'),
+                leading: const Icon(
+                  Icons.bar_chart,
+                ),
+                title: const Text(
+                  'Estatísticas',
+                ),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
@@ -146,8 +223,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.history),
-                title: const Text('Histórico'),
+                leading: const Icon(
+                  Icons.history,
+                ),
+                title: const Text(
+                  'Histórico',
+                ),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
                 ),
@@ -161,22 +242,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
             ],
-            const Divider(height: 32),
+            const Divider(
+              height: 32,
+            ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Configurações'),
+              leading: const Icon(
+                Icons.settings,
+              ),
+              title: const Text(
+                'Configurações',
+              ),
               trailing: const Icon(
                 Icons.arrow_forward_ios,
               ),
               onTap: () {},
             ),
             ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Sair'),
+              leading: const Icon(
+                Icons.logout,
+              ),
+              title: const Text(
+                'Sair',
+              ),
               trailing: const Icon(
                 Icons.arrow_forward_ios,
               ),
-              onTap: () {},
+              onTap: () async {
+                final confirmar = await showDialog<bool>(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text(
+                        'Sair',
+                      ),
+                      content: const Text(
+                        'Deseja realmente encerrar sua sessão?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(
+                              context,
+                              false,
+                            );
+                          },
+                          child: const Text(
+                            'Cancelar',
+                          ),
+                        ),
+                        FilledButton(
+                          onPressed: () {
+                            Navigator.pop(
+                              context,
+                              true,
+                            );
+                          },
+                          child: const Text(
+                            'Sair',
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                if (confirmar == true) {
+                  await context.read<AuthProvider>().logout();
+                }
+              },
             ),
           ],
         ),

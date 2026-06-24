@@ -1,58 +1,68 @@
-import 'dart:convert';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../data/models/capitulo_model.dart';
 import '../data/models/obra_model.dart';
-import '../data/mock/mock_obras.dart';
-import '../services/storage_service.dart';
 
 class ObraProvider extends ChangeNotifier {
-  ObraProvider() {
-    carregarObras();
-  }
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  final List<ObraModel> _obras = [...mockObras];
+  final List<ObraModel> _obras = [];
 
   List<ObraModel> get obras => _obras;
 
-  Future<void> salvarObras() async {
-    final jsonString = jsonEncode(
-      _obras.map((e) => e.toJson()).toList(),
-    );
-
-    await StorageService.saveString(
-      'obras',
-      jsonString,
-    );
+  ObraProvider() {
+    observarObras();
   }
 
-  Future<void> carregarObras() async {
-    final data = await StorageService.getString(
-      'obras',
-    );
+  void observarObras() {
+    _db.collection('obras').snapshots().listen((snapshot) {
+      _obras.clear();
 
-    if (data == null) return;
+      _obras.addAll(
+        snapshot.docs.map((doc) {
+          final obra = ObraModel.fromJson(doc.data());
 
-    final List lista = jsonDecode(data);
+          obra.id = doc.id;
 
-    _obras.clear();
+          return obra;
+        }),
+      );
 
-    _obras.addAll(
-      lista.map(
-        (e) => ObraModel.fromJson(e),
-      ),
-    );
-
-    notifyListeners();
+      notifyListeners();
+    });
   }
 
   Future<void> adicionarObra(
     ObraModel obra,
   ) async {
+    final doc = await _db.collection('obras').add(obra.toJson());
+
+    obra.id = doc.id;
+
     _obras.add(obra);
 
-    await salvarObras();
+    notifyListeners();
+  }
+
+  Future<void> atualizarObra(
+    ObraModel obra,
+  ) async {
+    await _db.collection('obras').doc(obra.id).update(
+          obra.toJson(),
+        );
+
+    notifyListeners();
+  }
+
+  Future<void> removerObra(
+    ObraModel obra,
+  ) async {
+    await _db.collection('obras').doc(obra.id).delete();
+
+    _obras.removeWhere(
+      (item) => item.id == obra.id,
+    );
 
     notifyListeners();
   }
@@ -61,43 +71,64 @@ class ObraProvider extends ChangeNotifier {
     ObraModel obra,
     CapituloModel capitulo,
   ) async {
-    final index = _obras.indexOf(obra);
+    obra.capitulos.add(capitulo);
 
-    if (index != -1) {
-      _obras[index].capitulos.add(
-            capitulo,
-          );
-
-      await salvarObras();
-
-      notifyListeners();
-    }
+    await atualizarObra(obra);
   }
 
-  Future<void> removerObra(
-    ObraModel obra,
-  ) async {
-    _obras.remove(obra);
-
-    await salvarObras();
-
-    notifyListeners();
-  }
-
-  Future<void> atualizarObra() async {
-    await salvarObras();
-    notifyListeners();
-  }
-
-  List<ObraModel> buscarObras(String texto) {
+  List<ObraModel> buscarObras(
+    String texto,
+  ) {
     if (texto.isEmpty) {
       return obras;
     }
 
-    return obras.where((obra) {
-      return obra.titulo.toLowerCase().contains(texto.toLowerCase()) ||
-          obra.autor.toLowerCase().contains(texto.toLowerCase()) ||
-          obra.genero.toLowerCase().contains(texto.toLowerCase());
-    }).toList();
+    return obras.where(
+      (obra) {
+        return obra.titulo.toLowerCase().contains(
+                  texto.toLowerCase(),
+                ) ||
+            obra.autor.toLowerCase().contains(
+                  texto.toLowerCase(),
+                ) ||
+            obra.genero.toLowerCase().contains(
+                  texto.toLowerCase(),
+                );
+      },
+    ).toList();
+  }
+
+  List<ObraModel> minhasObras(
+    String autorId,
+  ) {
+    return _obras
+        .where(
+          (obra) => obra.autorId == autorId,
+        )
+        .toList();
+  }
+
+  List<ObraModel> obrasDoAutor(
+    String autorId,
+  ) {
+    return _obras
+        .where(
+          (obra) => obra.autorId == autorId,
+        )
+        .toList();
+  }
+
+  List<ObraModel> get melhoresObras {
+    final lista = List<ObraModel>.from(
+      _obras,
+    );
+
+    lista.sort(
+      (a, b) => b.avaliacao.compareTo(
+        a.avaliacao,
+      ),
+    );
+
+    return lista.take(10).toList();
   }
 }

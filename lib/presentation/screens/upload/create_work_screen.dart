@@ -1,11 +1,14 @@
 import 'dart:io';
 
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:projeto_flutter/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/models/obra_model.dart';
 import '../../../providers/obra_provider.dart';
+import '../../../services/storage_cloud_service.dart';
 
 class CreateWorkScreen extends StatefulWidget {
   const CreateWorkScreen({super.key});
@@ -25,6 +28,8 @@ class _CreateWorkScreenState extends State<CreateWorkScreen> {
 
   File? capaSelecionada;
 
+  bool carregando = false;
+
   Future<void> selecionarCapa() async {
     final picker = ImagePicker();
 
@@ -34,11 +39,111 @@ class _CreateWorkScreenState extends State<CreateWorkScreen> {
 
     if (imagem != null) {
       setState(() {
-        capaSelecionada = File(
-          imagem.path,
-        );
+        capaSelecionada = File(imagem.path);
       });
     }
+  }
+
+  Future<void> publicarObra() async {
+    if (tituloController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Informe o título da obra.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (autorController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Informe o autor.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (capaSelecionada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Selecione uma capa.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    try {
+      setState(() {
+        carregando = true;
+      });
+
+      final urlCapa = await StorageCloudService().uploadImagem(
+        capaSelecionada!,
+        'capas',
+      );
+
+      final usuario = context.read<UserProvider>().usuario;
+
+      final novaObra = ObraModel(
+        id: '',
+        titulo: tituloController.text,
+        autor: autorController.text,
+        genero: generoController.text,
+        sinopse: sinopseController.text,
+        autorId: usuario!.uid,
+        autorNome: usuario.nome.isNotEmpty ? usuario.nome : usuario.email,
+        avaliacao: 0,
+        visualizacoes: 0,
+        capa: urlCapa,
+        capitulos: [],
+      );
+
+      await context.read<ObraProvider>().adicionarObra(
+            novaObra,
+          );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Obra publicada com sucesso!',
+          ),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erro ao publicar: $e',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          carregando = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    tituloController.dispose();
+    autorController.dispose();
+    generoController.dispose();
+    sinopseController.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -89,15 +194,24 @@ class _CreateWorkScreenState extends State<CreateWorkScreen> {
                 width: 140,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade800,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    12,
+                  ),
                 ),
                 child: capaSelecionada != null
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          capaSelecionada!,
-                          fit: BoxFit.cover,
+                        borderRadius: BorderRadius.circular(
+                          12,
                         ),
+                        child: kIsWeb
+                            ? Image.network(
+                                capaSelecionada!.path,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                capaSelecionada!,
+                                fit: BoxFit.cover,
+                              ),
                       )
                     : const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -107,48 +221,27 @@ class _CreateWorkScreenState extends State<CreateWorkScreen> {
                             size: 40,
                           ),
                           SizedBox(height: 8),
-                          Text('Selecionar capa'),
+                          Text(
+                            'Selecionar capa',
+                          ),
                         ],
                       ),
               ),
             ),
             const SizedBox(height: 32),
-            const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () {
-                  final novaObra = ObraModel(
-                    titulo: tituloController.text,
-                    autor: autorController.text,
-                    genero: generoController.text,
-                    sinopse: sinopseController.text,
-                    avaliacao: 0,
-                    capa: capaSelecionada?.path ?? '',
-                    capitulos: [],
-                  );
-
-                  context.read<ObraProvider>().adicionarObra(
-                        novaObra,
-                      );
-
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Obra publicada!',
+                onPressed: carregando ? null : publicarObra,
+                child: carregando
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(),
+                      )
+                    : const Text(
+                        'Publicar',
                       ),
-                    ),
-                  );
-
-                  Navigator.pop(
-                    context,
-                  );
-                },
-                child: const Text(
-                  'Publicar',
-                ),
               ),
             ),
           ],

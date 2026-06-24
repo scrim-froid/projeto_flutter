@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_flutter/providers/obra_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/favoritos_provider.dart';
@@ -10,28 +11,32 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final favoritos =
-        context.watch<FavoritosProvider>();
+    final favoritosProvider = context.watch<FavoritosProvider>();
+
+    final obraProvider = context.watch<ObraProvider>();
+
+    final obrasFavoritas = obraProvider.obras
+        .where(
+          (obra) => favoritosProvider.isFavorito(
+            obra.id,
+          ),
+        )
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Favoritos'),
       ),
-
-      body: favoritos.favoritos.isEmpty
+      body: obrasFavoritas.isEmpty
           ? const Center(
               child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
-
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.favorite_border,
                     size: 80,
                   ),
-
                   SizedBox(height: 16),
-
                   Text(
                     'Nenhuma obra favoritada',
                   ),
@@ -39,37 +44,24 @@ class FavoritesScreen extends StatelessWidget {
               ),
             )
           : GridView.builder(
-              padding:
-                  const EdgeInsets.all(16),
-
-              itemCount:
-                  favoritos.favoritos.length,
-
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+              padding: const EdgeInsets.all(16),
+              itemCount: obrasFavoritas.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-
                 crossAxisSpacing: 12,
-
                 mainAxisSpacing: 12,
-
                 childAspectRatio: 0.65,
               ),
-
-              itemBuilder:
-                  (context, index) {
-                final obra =
-                    favoritos.favoritos[index];
+              itemBuilder: (context, index) {
+                final obra = obrasFavoritas[index];
 
                 return ObraCard(
                   obra: obra,
-
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            ObraDetailScreen(
+                        builder: (_) => ObraDetailScreen(
                           obra: obra,
                         ),
                       ),

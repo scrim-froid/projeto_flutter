@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projeto_flutter/presentation/screens/obra/obra_detail_screen.dart';
 import 'package:projeto_flutter/providers/obra_provider.dart';
-import 'package:projeto_flutter/services/firebase_test.dart';
 import 'package:provider/provider.dart';
 
 import '../../widgets/continue_reading_card.dart';
@@ -121,13 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   }
-
-                  FilledButton(
-                    onPressed: () async {
-                      await FirebaseTest.testar();
-                    },
-                    child: const Text('Testar Firebase'),
-                  );
 
                   return GridView.builder(
                     shrinkWrap: true,

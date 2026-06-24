@@ -1,76 +1,73 @@
-import 'dart:convert';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../data/models/obra_model.dart';
-import '../services/storage_service.dart';
 
 class FavoritosProvider extends ChangeNotifier {
-  final List<ObraModel> _favoritos = [];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  List<ObraModel> get favoritos => _favoritos;
+  final List<String> _favoritos = [];
 
-  bool isFavorito(ObraModel obra) {
-    return _favoritos.any(
-      (favorito) => favorito.titulo == obra.titulo,
-    );
-  }
+  List<String> get favoritos => _favoritos;
 
-  Future<void> salvarFavoritos() async {
-    final titulos = _favoritos.map((obra) => obra.titulo).toList();
-
-    await StorageService.saveString(
-      'favoritos',
-      jsonEncode(titulos),
+  bool isFavorito(String obraId) {
+    return _favoritos.contains(
+      obraId,
     );
   }
 
   Future<void> carregarFavoritos(
-    List<ObraModel> obras,
+    String uid,
   ) async {
-    final data = await StorageService.getString(
-      'favoritos',
-    );
-
-    if (data == null) return;
-
-    final List lista = jsonDecode(data);
+    final snapshot =
+        await _db.collection('usuarios').doc(uid).collection('favoritos').get();
 
     _favoritos.clear();
 
-    for (final obra in obras) {
-      if (lista.contains(obra.titulo)) {
-        _favoritos.add(obra);
-      }
-    }
+    _favoritos.addAll(
+      snapshot.docs.map(
+        (doc) => doc.id,
+      ),
+    );
 
     notifyListeners();
   }
 
-  Future<void> toggleFavorito(
-    ObraModel obra,
-  ) async {
-    if (isFavorito(obra)) {
-      _favoritos.removeWhere(
-        (favorito) => favorito.titulo == obra.titulo,
-      );
-    } else {
-      _favoritos.add(obra);
-    }
+  Future<void> toggleFavorito({
+    required String uid,
+    required ObraModel obra,
+  }) async {
+    final docRef = _db
+        .collection('usuarios')
+        .doc(uid)
+        .collection('favoritos')
+        .doc(obra.id);
 
-    if (_favoritos.contains(obra)) {
-      _favoritos.remove(obra);
+    if (_favoritos.contains(
+      obra.id,
+    )) {
+      await docRef.delete();
+
+      _favoritos.remove(
+        obra.id,
+      );
 
       if (obra.favoritos > 0) {
         obra.favoritos--;
       }
     } else {
-      _favoritos.add(obra);
+      await docRef.set({
+        'obraId': obra.id,
+        'titulo': obra.titulo,
+        'data': Timestamp.now(),
+      });
+
+      _favoritos.add(
+        obra.id!,
+      );
 
       obra.favoritos++;
     }
-
-    await salvarFavoritos();
 
     notifyListeners();
   }

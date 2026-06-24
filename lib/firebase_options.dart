@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'inkbr-4760f',
     storageBucket: 'inkbr-4760f.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBZ8Xgetoxb_mVJBwxi6NxLZWxvwnX2sl8',
     appId: '1:511479371724:ios:2f4762a93ced3c00f92f69',
@@ -65,7 +64,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'inkbr-4760f.firebasestorage.app',
     iosBundleId: 'com.example.projetoFlutter',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyBZ8Xgetoxb_mVJBwxi6NxLZWxvwnX2sl8',
     appId: '1:511479371724:ios:2f4762a93ced3c00f92f69',

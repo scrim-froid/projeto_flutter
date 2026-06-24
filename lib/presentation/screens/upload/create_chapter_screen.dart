@@ -1,7 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:projeto_flutter/providers/obra_provider.dart';
+import 'package:projeto_flutter/services/storage_cloud_service.dart';
+import 'package:provider/provider.dart';
 
 import '../../../data/models/capitulo_model.dart';
 import '../../../data/models/obra_model.dart';
@@ -15,12 +19,12 @@ class CreateChapterScreen extends StatefulWidget {
   });
 
   @override
-  State<CreateChapterScreen> createState() =>
-      _CreateChapterScreenState();
+  State<CreateChapterScreen> createState() => _CreateChapterScreenState();
 }
 
-class _CreateChapterScreenState
-    extends State<CreateChapterScreen> {
+class _CreateChapterScreenState extends State<CreateChapterScreen> {
+  bool carregando = false;
+
   final tituloController = TextEditingController();
 
   final numeroController = TextEditingController();
@@ -50,7 +54,7 @@ class _CreateChapterScreenState
     super.dispose();
   }
 
-  void publicarCapitulo() {
+  Future<void> publicarCapitulo() async {
     if (tituloController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -84,29 +88,63 @@ class _CreateChapterScreenState
       return;
     }
 
-    final novoCapitulo = CapituloModel(
-      numero: int.parse(
-        numeroController.text,
-      ),
-      titulo: tituloController.text,
-      paginas: paginas
-          .map((pagina) => pagina.path)
-          .toList(),
-    );
+    try {
+      setState(() {
+        carregando = true;
+      });
 
-    widget.obra.capitulos.add(
-      novoCapitulo,
-    );
+      final storage = StorageCloudService();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Capítulo publicado com sucesso!',
+      final paginasUrl = <String>[];
+
+      for (final pagina in paginas) {
+        final url = await storage.uploadImagem(
+          pagina,
+          'capitulos',
+        );
+
+        paginasUrl.add(url);
+      }
+
+      final novoCapitulo = CapituloModel(
+        numero: int.parse(
+          numeroController.text,
         ),
-      ),
-    );
+        titulo: tituloController.text,
+        paginas: paginasUrl,
+      );
 
-    Navigator.pop(context);
+      await context.read<ObraProvider>().adicionarCapitulo(
+            widget.obra,
+            novoCapitulo,
+          );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Capítulo publicado com sucesso!',
+          ),
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erro ao publicar capítulo: $e',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          carregando = false;
+        });
+      }
+    }
   }
 
   @override
@@ -127,33 +165,25 @@ class _CreateChapterScreenState
                 labelText: 'Título',
               ),
             ),
-
             const SizedBox(height: 16),
-
             TextField(
               controller: numeroController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText:
-                    'Número do capítulo',
+                labelText: 'Número do capítulo',
               ),
             ),
-
             const SizedBox(height: 24),
-
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   'Páginas',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 IconButton(
                   onPressed: selecionarPagina,
                   icon: const Icon(
@@ -162,7 +192,6 @@ class _CreateChapterScreenState
                 ),
               ],
             ),
-
             Expanded(
               child: paginas.isEmpty
                   ? const Center(
@@ -171,17 +200,21 @@ class _CreateChapterScreenState
                       ),
                     )
                   : ListView.builder(
-                      itemCount:
-                          paginas.length,
-                      itemBuilder:
-                          (context, index) {
+                      itemCount: paginas.length,
+                      itemBuilder: (context, index) {
                         return Card(
                           child: ListTile(
-                            leading: Image.file(
-                              paginas[index],
-                              width: 50,
-                              fit: BoxFit.cover,
-                            ),
+                            leading: kIsWeb
+                                ? Image.network(
+                                    paginas[index].path,
+                                    width: 50,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.file(
+                                    paginas[index],
+                                    width: 50,
+                                    fit: BoxFit.cover,
+                                  ),
                             title: Text(
                               'Página ${index + 1}',
                             ),
@@ -190,15 +223,19 @@ class _CreateChapterScreenState
                       },
                     ),
             ),
-
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed:
-                    publicarCapitulo,
-                child: const Text(
-                  'Publicar',
-                ),
+                onPressed: carregando ? null : publicarCapitulo,
+                child: carregando
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(),
+                      )
+                    : const Text(
+                        'Publicar',
+                      ),
               ),
             ),
           ],
