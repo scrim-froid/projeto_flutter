@@ -58,4 +58,24 @@ class UserProvider extends ChangeNotifier {
       doc.data()!,
     );
   }
+
+  Future<void> atualizarPerfil({
+    required String nome,
+    required String bio,
+  }) async {
+    if (usuario == null) return;
+
+    final usuarioAtualizado = usuario!.copyWith(
+      nome: nome,
+      bio: bio,
+    );
+
+    await _db.collection('usuarios').doc(usuario!.uid).update(
+          usuarioAtualizado.toJson(),
+        );
+
+    usuario = usuarioAtualizado;
+
+    notifyListeners();
+  }
 }

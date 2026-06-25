@@ -10,13 +10,17 @@ class AuthProvider extends ChangeNotifier {
   User? usuario;
 
   AuthProvider() {
-    _authService.authState.listen(
-      (user) {
-        usuario = user;
-        notifyListeners();
-      },
-    );
-  }
+  _authService.authState.listen(
+    (user) {
+      debugPrint(
+        'AUTH PROVIDER RECEBEU: ${user?.uid}',
+      );
+
+      usuario = user;
+      notifyListeners();
+    },
+  );
+}
 
   bool get logado => usuario != null;
 

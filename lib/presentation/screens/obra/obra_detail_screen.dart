@@ -98,7 +98,7 @@ class _ObraDetailScreenState extends State<ObraDetailScreen> {
                       );
                     },
                     child: Text(
-                      widget.obra.autorNome,
+                      widget.obra.autor,
                       style: const TextStyle(
                         color: Colors.orange,
                         fontWeight: FontWeight.bold,

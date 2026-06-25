@@ -12,6 +12,9 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        debugPrint(
+          'AUTH STATE => ${snapshot.data?.uid}',
+        );
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(
@@ -21,9 +24,11 @@ class AuthGate extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
+          debugPrint('MOSTRANDO MAIN');
           return const MainNavigationScreen();
         }
 
+        debugPrint('MOSTRANDO LOGIN');
         return const LoginScreen();
       },
     );

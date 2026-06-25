@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_flutter/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/obra_provider.dart';
@@ -8,38 +9,70 @@ class StatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final obras = context.watch<ObraProvider>().obras;
+    final usuario = context.watch<UserProvider>().usuario;
 
-    final totalObras = obras.length;
+    final minhasObras =
+        context.watch<ObraProvider>().obrasDoAutor(usuario!.uid);
 
-    final totalCapitulos = obras.fold<int>(
-      0,
-      (total, obra) => total + obra.capitulos.length,
+    for (final obra in context.read<ObraProvider>().obras) {
+      debugPrint(
+        '${obra.titulo} | autorId=${obra.autorId}',
+      );
+    }
+
+    for (final obra in context.watch<ObraProvider>().obras) {
+      debugPrint(
+        '${obra.titulo} -> autorId=${obra.autorId}',
+      );
+    }
+
+    debugPrint(
+      'Minhas obras: ${minhasObras.length}',
     );
 
-    final totalVisualizacoes = obras.fold<int>(
+    for (final obra in minhasObras) {
+      debugPrint(
+        '${obra.titulo} | '
+        'Views: ${obra.visualizacoes} | '
+        'Avaliações: ${obra.totalAvaliacoes} | '
+        'Nota: ${obra.avaliacao}',
+      );
+    }
+
+    final totalObras = minhasObras.length;
+
+    final totalVisualizacoes = minhasObras.fold(
       0,
       (total, obra) => total + obra.visualizacoes,
     );
 
-    final totalFavoritos = obras.fold<int>(
+    final totalFavoritos = minhasObras.fold(
       0,
       (total, obra) => total + obra.favoritos,
     );
 
-    final mediaAvaliacoes = obras.isEmpty
-        ? 0.0
-        : obras.fold<double>(
-              0,
-              (total, obra) => total + obra.avaliacao,
-            ) /
-            obras.length;
+    final totalCapitulos = minhasObras.fold(
+      0,
+      (total, obra) => total + obra.capitulos.length,
+    );
+
+    double mediaAvaliacoes = 0;
+
+    if (minhasObras.isNotEmpty) {
+      double soma = 0;
+
+      for (final obra in minhasObras) {
+        soma += obra.avaliacao;
+      }
+
+      mediaAvaliacoes = soma / minhasObras.length;
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Estatísticas'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
@@ -67,6 +100,42 @@ class StatsScreen extends StatelessWidget {
               'Média das Avaliações',
               mediaAvaliacoes.toStringAsFixed(1),
               Icons.star,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Minhas Obras',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...minhasObras.map(
+              (obra) => Card(
+                child: ListTile(
+                  title: Text(
+                    obra.titulo,
+                  ),
+                  subtitle: Text(
+                    '${obra.visualizacoes} visualizações • '
+                    '${obra.totalAvaliacoes} avaliações',
+                  ),
+                  trailing: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                        size: 18,
+                      ),
+                      Text(
+                        obra.avaliacao.toStringAsFixed(1),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),

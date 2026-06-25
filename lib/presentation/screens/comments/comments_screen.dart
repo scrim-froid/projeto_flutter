@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:projeto_flutter/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../../../data/models/comentario_model.dart';
 import '../../../data/models/obra_model.dart';
@@ -112,9 +114,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                           });
                         },
                         icon: Icon(
-                          index < nota
-                              ? Icons.star
-                              : Icons.star_border,
+                          index < nota ? Icons.star : Icons.star_border,
                           color: Colors.amber,
                         ),
                       );
@@ -129,10 +129,14 @@ class _CommentsScreenState extends State<CommentsScreen> {
 
                       if (user == null) return;
 
+                      final usuario = context.read<UserProvider>().usuario;
+
                       final comentario = ComentarioModel(
                         id: '',
                         uid: user.uid,
-                        nome: user.email ?? 'Usuário',
+                        nome: (usuario?.nome.trim().isNotEmpty ?? false)
+                            ? usuario!.nome
+                            : (user.email?.split('@').first ?? 'Usuário'),
                         texto: comentarioController.text,
                         nota: nota,
                         data: DateTime.now(),

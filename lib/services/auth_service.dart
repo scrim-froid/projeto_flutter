@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class AuthService {
   final FirebaseAuth _auth =
@@ -30,7 +31,13 @@ class AuthService {
     );
   }
 
-  Future<void> logout() {
-    return _auth.signOut();
-  }
+  Future<void> logout() async {
+  debugPrint('ANTES SIGNOUT');
+  
+  await _auth.signOut();
+
+  debugPrint(
+    'DEPOIS SIGNOUT: ${_auth.currentUser}',
+  );
+}
 }

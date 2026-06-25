@@ -12,8 +12,6 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final obras = context.watch<ObraProvider>().obras;
 
-    print('Obras encontradas: ${obras.length}');
-
     final populares = [...obras];
     populares.sort(
       (a, b) => b.visualizacoes.compareTo(a.visualizacoes),
