@@ -12,13 +12,29 @@ import '../../../data/models/obra_model.dart';
 import '../../../providers/favoritos_provider.dart';
 import '../reader/reader_screen.dart';
 
-class ObraDetailScreen extends StatelessWidget {
+class ObraDetailScreen extends StatefulWidget {
   final ObraModel obra;
 
   const ObraDetailScreen({
     super.key,
     required this.obra,
   });
+
+  @override
+  State<ObraDetailScreen> createState() => _ObraDetailScreenState();
+}
+
+class _ObraDetailScreenState extends State<ObraDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ObraProvider>().incrementarVisualizacao(
+            widget.obra,
+          );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,22 +45,22 @@ class ObraDetailScreen extends StatelessWidget {
             expandedHeight: 320,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: obra.capa.isNotEmpty
-                  ? Image.network(
-                      obra.capa,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
-                        return Container(
+              background: widget.obra.capa.isNotEmpty
+                  ? widget.obra.capa.isNotEmpty
+                      ? Image.network(
+                          widget.obra.capa,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          height: 250,
                           color: Colors.grey.shade800,
                           child: const Center(
                             child: Icon(
-                              Icons.image,
-                              size: 100,
+                              Icons.menu_book,
+                              size: 80,
                             ),
                           ),
-                        );
-                      },
-                    )
+                        )
                   : Container(
                       color: Colors.grey.shade800,
                       child: const Center(
@@ -63,7 +79,7 @@ class ObraDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    obra.titulo,
+                    widget.obra.titulo,
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -76,13 +92,13 @@ class ObraDetailScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => AuthorProfileScreen(
-                            autorId: obra.autorId,
+                            autorId: widget.obra.autorId,
                           ),
                         ),
                       );
                     },
                     child: Text(
-                      obra.autorNome,
+                      widget.obra.autorNome,
                       style: const TextStyle(
                         color: Colors.orange,
                         fontWeight: FontWeight.bold,
@@ -104,7 +120,7 @@ class ObraDetailScreen extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          obra.genero,
+                          widget.obra.genero,
                         ),
                       ),
                       Row(
@@ -115,11 +131,11 @@ class ObraDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            obra.avaliacao.toStringAsFixed(1),
+                            widget.obra.avaliacao.toStringAsFixed(1),
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '(${obra.totalAvaliacoes})',
+                            '(${widget.obra.totalAvaliacoes})',
                           ),
                         ],
                       ),
@@ -130,7 +146,7 @@ class ObraDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        obra.avaliacao.toString(),
+                        widget.obra.avaliacao.toString(),
                       ),
                     ],
                   ),
@@ -144,7 +160,7 @@ class ObraDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    obra.sinopse,
+                    widget.obra.sinopse,
                     style: const TextStyle(
                       height: 1.5,
                     ),
@@ -159,7 +175,7 @@ class ObraDetailScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => CommentsScreen(
-                            obra: obra,
+                            obra: widget.obra,
                           ),
                         ),
                       );
@@ -176,7 +192,7 @@ class ObraDetailScreen extends StatelessWidget {
                             child,
                           ) {
                             final isFavorito = favoritos.isFavorito(
-                              obra.id,
+                              widget.obra.id,
                             );
 
                             final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -185,7 +201,7 @@ class ObraDetailScreen extends StatelessWidget {
                               onPressed: () async {
                                 await favoritos.toggleFavorito(
                                   uid: uid,
-                                  obra: obra,
+                                  obra: widget.obra,
                                 );
                               },
                               icon: Icon(
@@ -204,7 +220,7 @@ class ObraDetailScreen extends StatelessWidget {
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: () async {
-                            if (obra.capitulos.isEmpty) {
+                            if (widget.obra.capitulos.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
@@ -218,20 +234,20 @@ class ObraDetailScreen extends StatelessWidget {
                             final obraIndex = context
                                 .read<ObraProvider>()
                                 .obras
-                                .indexOf(obra);
+                                .indexOf(widget.obra);
 
-                            obra.visualizacoes++;
+                            widget.obra.visualizacoes++;
 
                             await context
                                 .read<ObraProvider>()
-                                .atualizarObra(obra);
+                                .atualizarObra(widget.obra);
 
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => ReaderScreen(
-                                  obra: obra,
-                                  capitulo: obra.capitulos.first,
+                                  obra: widget.obra,
+                                  capitulo: widget.obra.capitulos.first,
                                   obraIndex: obraIndex,
                                   capituloIndex: 0,
                                 ),
@@ -252,7 +268,7 @@ class ObraDetailScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => CreateChapterScreen(
-                            obra: obra,
+                            obra: widget.obra,
                           ),
                         ),
                       );
@@ -273,7 +289,7 @@ class ObraDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  if (obra.capitulos.isEmpty)
+                  if (widget.obra.capitulos.isEmpty)
                     const Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
@@ -282,7 +298,7 @@ class ObraDetailScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ...obra.capitulos.asMap().entries.map(
+                  ...widget.obra.capitulos.asMap().entries.map(
                     (entry) {
                       final capituloIndex = entry.key;
                       final capitulo = entry.value;
@@ -307,7 +323,7 @@ class ObraDetailScreen extends StatelessWidget {
                             final obraIndex = context
                                 .read<ObraProvider>()
                                 .obras
-                                .indexOf(obra);
+                                .indexOf(widget.obra);
                             Row(
                               children: [
                                 const Icon(
@@ -316,15 +332,22 @@ class ObraDetailScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  obra.avaliacao.toStringAsFixed(1),
+                                  widget.obra.avaliacao.toStringAsFixed(1),
                                 ),
                                 const SizedBox(width: 8),
-                                Text(
-                                  '(${obra.totalAvaliacoes} avaliações)',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                  ),
-                                ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      widget.obra.avaliacao.toStringAsFixed(1),
+                                    ),
+                                    Text(
+                                      '${widget.obra.totalAvaliacoes} avaliações',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                )
                               ],
                             );
 
@@ -332,7 +355,7 @@ class ObraDetailScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => ReaderScreen(
-                                  obra: obra,
+                                  obra: widget.obra,
                                   capitulo: capitulo,
                                   obraIndex: obraIndex,
                                   capituloIndex: capituloIndex,

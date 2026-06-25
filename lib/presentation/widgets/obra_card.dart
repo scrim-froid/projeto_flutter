@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../../data/models/obra_model.dart';
@@ -17,67 +15,88 @@ class ObraCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                  size: 18,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  obra.avaliacao.toStringAsFixed(1),
-                ),
-              ],
+            Expanded(
+              flex: 3,
+              child: SizedBox(
+                width: double.infinity,
+                child: _buildCapa(),
+              ),
             ),
             Expanded(
-              child: _buildCapa(),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    obra.titulo,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      obra.titulo,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    obra.autor,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
+                    const SizedBox(height: 4),
+                    Text(
+                      obra.genero,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade400,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        size: 16,
-                        color: Colors.amber,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        obra.avaliacao.toStringAsFixed(1),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${obra.totalAvaliacoes})',
-                      ),
-                    ],
-                  )
-                ],
+                    const Spacer(),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          obra.avaliacao.toStringAsFixed(1),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.favorite,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          obra.favoritos.toString(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.remove_red_eye,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          obra.visualizacoes.toString(),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '(${obra.totalAvaliacoes})',
+                          style: const TextStyle(
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -87,47 +106,18 @@ class ObraCard extends StatelessWidget {
   }
 
   Widget _buildCapa() {
-    // imagem selecionada pelo usuário
-    if (obra.capa.isNotEmpty && !obra.capa.startsWith('assets/')) {
-      return Image.file(
-        File(obra.capa),
-        fit: BoxFit.cover,
-        width: double.infinity,
-        errorBuilder: (
-          context,
-          error,
-          stackTrace,
-        ) {
-          return _imagemPadrao();
-        },
-      );
-    }
-
-    // imagem dos assets
-    if (obra.capa.isNotEmpty) {
+    if (obra.capa.isNotEmpty && obra.capa.startsWith('http')) {
       return Image.network(
         obra.capa,
         fit: BoxFit.cover,
-        width: double.infinity,
-        errorBuilder: (
-          context,
-          error,
-          stackTrace,
-        ) {
-          return _imagemPadrao();
-        },
       );
     }
 
-    return _imagemPadrao();
-  }
-
-  Widget _imagemPadrao() {
     return Container(
       color: Colors.grey.shade800,
       child: const Center(
         child: Icon(
-          Icons.auto_stories,
+          Icons.menu_book,
           size: 60,
         ),
       ),

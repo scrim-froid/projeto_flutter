@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_flutter/presentation/screens/about/about_screen.dart';
 import 'package:projeto_flutter/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -54,6 +55,7 @@ class InkBRApp extends StatelessWidget {
           '/main': (_) => const MainNavigationScreen(),
           '/home': (_) => const HomeScreen(),
           '/create-work': (_) => const CreateWorkScreen(),
+          '/about': (_) => const AboutScreen(),
         },
       ),
     );

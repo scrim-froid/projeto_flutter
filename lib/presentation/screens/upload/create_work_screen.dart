@@ -67,26 +67,19 @@ class _CreateWorkScreenState extends State<CreateWorkScreen> {
       return;
     }
 
-    if (capaSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Selecione uma capa.',
-          ),
-        ),
-      );
-      return;
-    }
-
     try {
       setState(() {
         carregando = true;
       });
 
-      final urlCapa = await StorageCloudService().uploadImagem(
-        capaSelecionada!,
-        'capas',
-      );
+      String urlCapa = '';
+
+      if (capaSelecionada != null) {
+        urlCapa = await StorageCloudService().uploadImagem(
+          capaSelecionada!,
+          'capas',
+        );
+      }
 
       final usuario = context.read<UserProvider>().usuario;
 

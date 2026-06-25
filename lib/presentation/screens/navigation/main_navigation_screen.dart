@@ -42,7 +42,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Scaffold(
       body: Column(
         children: [
-          const Text('TESTE'),
           Expanded(
             child: pages[currentIndex],
           ),

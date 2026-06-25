@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:projeto_flutter/data/models/user_model.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/auth_provider.dart';
@@ -22,11 +23,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final user = FirebaseAuth.instance.currentUser;
+      final authUser = FirebaseAuth.instance.currentUser;
 
-      if (user == null) return;
+      if (authUser == null) return;
 
-      await context.read<UserProvider>().carregarUsuario(user.uid);
+      final userProvider = context.read<UserProvider>();
+
+      await userProvider.carregarUsuario(
+        authUser.uid,
+      );
+
+      if (userProvider.usuario == null) {
+        await userProvider.salvarUsuario(
+          UserModel(
+            uid: authUser.uid,
+            email: authUser.email ?? '',
+            nome: '',
+            bio: '',
+            isAuthor: false,
+          ),
+        );
+
+        await userProvider.carregarUsuario(
+          authUser.uid,
+        );
+      }
     });
   }
 
@@ -39,9 +60,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final usuario = userProvider.usuario;
 
     if (usuario == null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Perfil'),
+        ),
+        body: const Center(
+          child: Text(
+            'Perfil não encontrado.',
+          ),
         ),
       );
     }
@@ -255,7 +281,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               trailing: const Icon(
                 Icons.arrow_forward_ios,
               ),
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/about',
+                );
+              },
             ),
             ListTile(
               leading: const Icon(

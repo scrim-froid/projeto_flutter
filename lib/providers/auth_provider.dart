@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -29,14 +30,26 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
-  Future<UserCredential> cadastrar(
+  Future<void> cadastrar(
     String email,
     String senha,
   ) async {
-    return await _authService.cadastrar(
+    await _authService.cadastrar(
       email: email,
       senha: senha,
     );
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).set({
+      'uid': user.uid,
+      'email': user.email ?? '',
+      'nome': '',
+      'bio': '',
+      'isAuthor': false,
+    });
   }
 
   Future<void> logout() async {

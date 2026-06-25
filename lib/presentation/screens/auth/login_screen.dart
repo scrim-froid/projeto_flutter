@@ -74,16 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
             senhaController.text.trim(),
           );
 
-      await context.read<UserProvider>().salvarUsuario(
-            UserModel(
-              uid: credential.user!.uid,
-              email: credential.user!.email ?? '',
-              nome: '',
-              bio: '',
-              isAuthor: false,
-            ),
-          );
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(

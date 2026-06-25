@@ -131,4 +131,57 @@ class ObraProvider extends ChangeNotifier {
 
     return lista.take(10).toList();
   }
+
+  Future<void> incrementarVisualizacao(
+    ObraModel obra,
+  ) async {
+    await _db.collection('obras').doc(obra.id).update({
+      'visualizacoes': FieldValue.increment(1),
+    });
+  }
+
+  int get totalVisualizacoes {
+    return _obras.fold(
+      0,
+      (total, obra) => total + obra.visualizacoes,
+    );
+  }
+
+  int get totalFavoritos {
+    return _obras.fold(
+      0,
+      (total, obra) => total + obra.favoritos,
+    );
+  }
+
+  int get totalCapitulos {
+    return _obras.fold(
+      0,
+      (total, obra) => total + obra.capitulos.length,
+    );
+  }
+
+  double get mediaAvaliacoes {
+    if (_obras.isEmpty) return 0;
+
+    double soma = 0;
+
+    for (final obra in _obras) {
+      soma += obra.avaliacao;
+    }
+
+    return soma / _obras.length;
+  }
+
+  List<ObraModel> get obrasEmAlta {
+    final lista = List<ObraModel>.from(_obras);
+
+    lista.sort(
+      (a, b) => b.visualizacoes.compareTo(
+        a.visualizacoes,
+      ),
+    );
+
+    return lista.take(10).toList();
+  }
 }

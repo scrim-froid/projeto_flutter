@@ -1,161 +1,136 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_flutter/presentation/screens/obra/obra_detail_screen.dart';
-import 'package:projeto_flutter/providers/obra_provider.dart';
 import 'package:provider/provider.dart';
 
-import '../../widgets/continue_reading_card.dart';
-import '../../widgets/featured_banner.dart';
+import '../../../providers/obra_provider.dart';
 import '../../widgets/obra_card.dart';
+import '../obra/obra_detail_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  String busca = '';
-
-  @override
   Widget build(BuildContext context) {
+    final obras = context.watch<ObraProvider>().obras;
+
+    final populares = [...obras];
+    populares.sort(
+      (a, b) => b.visualizacoes.compareTo(a.visualizacoes),
+    );
+
+    final avaliadas = [...obras];
+    avaliadas.sort(
+      (a, b) => b.avaliacao.compareTo(a.avaliacao),
+    );
+
+    final recentes = obras.reversed.toList();
+
+    Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.orange,
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Bem-vindo ao InkBR',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Leia, publique e compartilhe histórias.',
+          ),
+        ],
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'InkBR',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+        title: const Text('InkBR'),
+      ),
+      body: ListView(
+        children: [
+          _secao(
+            context,
+            '🔥 Mais Populares',
+            populares.take(10).toList(),
+          ),
+          _secao(
+            context,
+            '⭐ Melhor Avaliadas',
+            avaliadas.take(10).toList(),
+          ),
+          _secao(
+            context,
+            '🆕 Adicionadas Recentemente',
+            recentes.take(10).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _secao(
+    BuildContext context,
+    String titulo,
+    List obras,
+  ) {
+    if (obras.isEmpty) {
+      return const SizedBox();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            titulo,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                decoration: const InputDecoration(
-                  hintText: 'Pesquisar HQs e Mangás',
-                  prefixIcon: Icon(Icons.search),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    busca = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              const FeaturedBanner(),
-              const SizedBox(height: 24),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '📖 Continuar Lendo',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const ContinueReadingCard(),
-              const SizedBox(height: 24),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '📚 Em Destaque',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: const [
-                    Chip(
-                      label: Text('Ação'),
-                    ),
-                    SizedBox(width: 8),
-                    Chip(
-                      label: Text(
-                        'Fantasia',
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Chip(
-                      label: Text('Drama'),
-                    ),
-                    SizedBox(width: 8),
-                    Chip(
-                      label: Text('Terror'),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Consumer<ObraProvider>(
-                builder: (
-                  context,
-                  provider,
-                  child,
-                ) {
-                  final resultados = provider.buscarObras(
-                    busca,
-                  );
+        SizedBox(
+          height: 280,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: obras.length,
+            itemBuilder: (context, index) {
+              final obra = obras[index];
 
-                  if (resultados.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.all(
-                        32,
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Nenhuma obra encontrada',
+              return SizedBox(
+                width: 180,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 12,
+                    bottom: 12,
+                  ),
+                  child: ObraCard(
+                    obra: obra,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ObraDetailScreen(
+                            obra: obra,
+                          ),
                         ),
-                      ),
-                    );
-                  }
-
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: resultados.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.65,
-                    ),
-                    itemBuilder: (context, index) {
-                      final obra = resultados[index];
-
-                      return ObraCard(
-                        obra: obra,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ObraDetailScreen(
-                                obra: obra,
-                              ),
-                            ),
-                          );
-                        },
                       );
                     },
-                  );
-                },
-              ),
-            ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
-      ),
+      ],
     );
   }
 }

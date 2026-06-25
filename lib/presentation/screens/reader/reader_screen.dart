@@ -1,11 +1,13 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:projeto_flutter/data/models/capitulo_model.dart';
-import 'package:projeto_flutter/data/models/obra_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:projeto_flutter/services/capitulo_service.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/leitura_provider.dart';
+
+import '../../../data/models/capitulo_model.dart';
 import '../../../data/models/leitura_model.dart';
+import '../../../data/models/obra_model.dart';
+import '../../../providers/leitura_provider.dart';
 
 class ReaderScreen extends StatefulWidget {
   final ObraModel obra;
@@ -13,7 +15,6 @@ class ReaderScreen extends StatefulWidget {
 
   final int obraIndex;
   final int capituloIndex;
-
   final int paginaInicial;
 
   const ReaderScreen({
@@ -31,10 +32,29 @@ class ReaderScreen extends StatefulWidget {
 
 class _ReaderScreenState extends State<ReaderScreen> {
   late PageController _controller;
-
   late int currentPage;
 
+  final CapituloService _service = CapituloService();
+
   bool showUI = true;
+
+  late Future<CapituloModel> _capituloFuture;
+
+  // 🔥 BUSCA CAPÍTULO ATUALIZADO NO FIRESTORE
+  Future<CapituloModel> carregarCapitulo() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('obras')
+        .doc(widget.obra.id)
+        .collection('capitulos')
+        .doc(widget.capitulo.id)
+        .get();
+
+    if (!doc.exists) {
+      throw Exception('Capítulo não encontrado');
+    }
+
+    return CapituloModel.fromJson(doc.data()!);
+  }
 
   @override
   void initState() {
@@ -42,9 +62,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     currentPage = widget.paginaInicial;
 
+    _controller = PageController(initialPage: widget.paginaInicial);
+
+    _capituloFuture = _service.buscarCapitulo(
+      obraId: widget.obra.id!,
+      capituloId: widget.capitulo.id!,
+    );
+
+    currentPage = widget.paginaInicial;
+
     _controller = PageController(
       initialPage: widget.paginaInicial,
     );
+
+    _capituloFuture = carregarCapitulo();
   }
 
   @override
@@ -58,27 +89,15 @@ class _ReaderScreenState extends State<ReaderScreen> {
       return Image.network(
         caminho,
         fit: BoxFit.contain,
-        loadingBuilder: (
-          context,
-          child,
-          progress,
-        ) {
-          if (progress == null) {
-            return child;
-          }
-
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const Center(child: CircularProgressIndicator());
         },
       );
     }
 
     if (caminho.startsWith('assets/')) {
-      return Image.asset(
-        caminho,
-        fit: BoxFit.contain,
-      );
+      return Image.asset(caminho, fit: BoxFit.contain);
     }
 
     return Image.file(
@@ -89,6 +108,45 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<CapituloModel>(
+      future: _capituloFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: Text('Erro ao carregar capítulo')),
+          );
+        }
+
+        final capitulo = snapshot.data!;
+
+        if (capitulo.paginas.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(title: Text(capitulo.titulo)),
+            body: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.auto_stories, size: 80),
+                  SizedBox(height: 16),
+                  Text('Este capítulo ainda não possui páginas.'),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return _buildReader(capitulo);
+      },
+    );
+  }
+
+  Widget _buildReader(CapituloModel capitulo) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
@@ -101,7 +159,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           children: [
             PageView.builder(
               controller: _controller,
-              itemCount: widget.capitulo.paginas.length,
+              itemCount: capitulo.paginas.length,
               onPageChanged: (index) {
                 setState(() {
                   currentPage = index;
@@ -110,25 +168,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 context.read<LeituraProvider>().salvarLeitura(
                       LeituraModel(
                         obraTitulo: widget.obra.titulo,
-                        capituloTitulo: widget.capitulo.titulo,
+                        capituloTitulo: capitulo.titulo,
                         obraIndex: widget.obraIndex,
                         capituloIndex: widget.capituloIndex,
                         paginaAtual: index,
-                        totalPaginas: widget.capitulo.paginas.length,
+                        totalPaginas: capitulo.paginas.length,
                       ),
                     );
               },
-              itemBuilder: (
-                context,
-                index,
-              ) {
+              itemBuilder: (context, index) {
                 return InteractiveViewer(
                   minScale: 1,
                   maxScale: 4,
                   child: Center(
-                    child: _buildPagina(
-                      widget.capitulo.paginas[index],
-                    ),
+                    child: _buildPagina(capitulo.paginas[index]),
                   ),
                 );
               },
@@ -139,15 +192,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 left: 10,
                 child: SafeArea(
                   child: IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      Navigator.pop(
-                        context,
-                      );
-                    },
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
               ),
@@ -164,12 +210,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: Colors.black54,
-                      borderRadius: BorderRadius.circular(
-                        20,
-                      ),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      '${currentPage + 1} / ${widget.capitulo.paginas.length}',
+                      '${currentPage + 1} / ${capitulo.paginas.length}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,

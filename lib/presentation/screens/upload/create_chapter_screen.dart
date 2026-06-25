@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -54,39 +55,9 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
     super.dispose();
   }
 
-  Future<void> publicarCapitulo() async {
-    if (tituloController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Informe o título do capítulo.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (numeroController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Informe o número do capítulo.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (paginas.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Adicione pelo menos uma página.',
-          ),
-        ),
-      );
-      return;
-    }
+  Future publicarCapitulo() async {
+    if (tituloController.text.trim().isEmpty) return;
+    if (numeroController.text.trim().isEmpty) return;
 
     try {
       setState(() {
@@ -94,7 +65,6 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
       });
 
       final storage = StorageCloudService();
-
       final paginasUrl = <String>[];
 
       for (final pagina in paginas) {
@@ -106,26 +76,30 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
         paginasUrl.add(url);
       }
 
+      final numero = int.tryParse(numeroController.text);
+
+      if (numero == null) return;
+
+      final capituloRef = FirebaseFirestore.instance
+          .collection('obras')
+          .doc(widget.obra.id)
+          .collection('capitulos')
+          .doc(); // ID gerado
+
       final novoCapitulo = CapituloModel(
-        numero: int.parse(
-          numeroController.text,
-        ),
+        id: capituloRef.id,
+        numero: numero,
         titulo: tituloController.text,
         paginas: paginasUrl,
       );
 
-      await context.read<ObraProvider>().adicionarCapitulo(
-            widget.obra,
-            novoCapitulo,
-          );
+      await capituloRef.set(novoCapitulo.toJson());
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Capítulo publicado com sucesso!',
-          ),
+          content: Text('Capítulo publicado com sucesso!'),
         ),
       );
 
@@ -133,9 +107,7 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Erro ao publicar capítulo: $e',
-          ),
+          content: Text('Erro ao publicar capítulo: $e'),
         ),
       );
     } finally {
