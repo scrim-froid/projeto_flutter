@@ -53,7 +53,7 @@ class AboutScreen extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.school),
               title: Text('Projeto Acadêmico'),
-              subtitle: Text('Curso de Desenvolvimento de Sistemas'),
+              subtitle: Text('Disciplina Desenvolvimento para Dispositivos Móveis'),
             ),
 
             ListTile(

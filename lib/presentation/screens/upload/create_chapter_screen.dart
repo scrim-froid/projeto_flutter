@@ -80,20 +80,16 @@ class _CreateChapterScreenState extends State<CreateChapterScreen> {
 
       if (numero == null) return;
 
-      final capituloRef = FirebaseFirestore.instance
-          .collection('obras')
-          .doc(widget.obra.id)
-          .collection('capitulos')
-          .doc(); // ID gerado
-
       final novoCapitulo = CapituloModel(
-        id: capituloRef.id,
         numero: numero,
         titulo: tituloController.text,
         paginas: paginasUrl,
       );
 
-      await capituloRef.set(novoCapitulo.toJson());
+      await context.read<ObraProvider>().adicionarCapitulo(
+            widget.obra,
+            novoCapitulo,
+          );
 
       if (!mounted) return;
 

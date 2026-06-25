@@ -17,6 +17,12 @@ class ObraProvider extends ChangeNotifier {
 
   void observarObras() {
     _db.collection('obras').snapshots().listen((snapshot) {
+      print('===== SNAPSHOT =====');
+
+      for (final doc in snapshot.docs) {
+        print(doc.id);
+        print(doc.data());
+      }
       _obras.clear();
 
       _obras.addAll(
@@ -41,6 +47,8 @@ class ObraProvider extends ChangeNotifier {
     obra.id = doc.id;
 
     _obras.add(obra);
+
+    print('ID gerado: ${doc.id}');
 
     notifyListeners();
   }
@@ -67,7 +75,7 @@ class ObraProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> adicionarCapitulo(
+  Future adicionarCapitulo(
     ObraModel obra,
     CapituloModel capitulo,
   ) async {
